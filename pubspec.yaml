@@ -33,6 +33,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter:
     sdk: flutter
+  provider:
   window_manager:
 
 dev_dependencies:

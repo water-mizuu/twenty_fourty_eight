@@ -1,15 +1,14 @@
 import "package:flutter/material.dart";
-import "package:twenty_fourty_eight/widgets/game_over/game_over.dart";
+import "package:provider/provider.dart";
+import "package:twenty_fourty_eight/state/game_state.dart";
 
 class ResetButton extends StatelessWidget {
   const ResetButton({
     required this.buttonOpacity,
-    required this.widget,
     super.key,
   });
 
   final double buttonOpacity;
-  final GameOver widget;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +16,7 @@ class ResetButton extends StatelessWidget {
       opacity: buttonOpacity,
       child: MaterialButton(
         color: const Color.fromARGB(255, 60, 58, 51),
-        onPressed: () => widget.reset(),
+        onPressed: () => context.read<GameState>().reset(),
         child: const Text(
           "Try Again",
           style: TextStyle(

@@ -1,26 +1,16 @@
 import "dart:ui";
 
-import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:twenty_fourty_eight/widgets/game_over/game_over_screen.dart";
 
 class GameOver extends StatefulWidget {
   final double gridSizeY;
   final double gridSizeX;
-  final void Function() reset;
 
-  const GameOver(this.gridSizeY, this.gridSizeX, this.reset, {super.key});
+  const GameOver(this.gridSizeY, this.gridSizeX, {super.key});
 
   @override
   State<GameOver> createState() => _GameOverState();
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DoubleProperty("gridSizeX", gridSizeX));
-    properties.add(DoubleProperty("gridSizeY", gridSizeY));
-    properties.add(ObjectFlagProperty<void Function()>.has("reset", reset));
-  }
 }
 
 class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin {

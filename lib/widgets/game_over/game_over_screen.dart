@@ -28,7 +28,7 @@ class GameOverScreen extends StatelessWidget {
         ),
         Positioned(
           top: widget.gridSizeY / 2,
-          child: ResetButton(buttonOpacity: buttonOpacity, widget: widget),
+          child: ResetButton(buttonOpacity: buttonOpacity),
         ),
       ],
     );
