@@ -2,7 +2,7 @@ import "dart:collection";
 import "dart:math" as math;
 
 import "package:flutter/material.dart";
-import "package:twenty_fourty_eight/data_structures/tile.dart";
+import 'package:twenty_fourty_eight/data_structures/animated_tile.dart';
 import "package:twenty_fourty_eight/shared.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/widgets/board.dart";
@@ -22,12 +22,12 @@ class GameState extends State<Game> with TickerProviderStateMixin {
   late bool actionIsUnlocked;
   late num score;
 
-  late final List2<Tile> grid;
-  late final Queue<Tile> toAdd;
+  late final List2<AnimatedTile> grid;
+  late final Queue<AnimatedTile> toAdd;
   late final AnimationController controller;
   late final FocusNode focusNode;
 
-  Iterable<Tile> get flattenedGrid => grid.expand((List<Tile> r) => r);
+  Iterable<AnimatedTile> get flattenedGrid => grid.expand((List<AnimatedTile> r) => r);
 
   @override
   void initState() {
@@ -35,13 +35,13 @@ class GameState extends State<Game> with TickerProviderStateMixin {
 
     actionIsUnlocked = true;
 
-    grid = <List<Tile>>[
+    grid = <List<AnimatedTile>>[
       for (int y = 0; y < gridY; ++y)
-        <Tile>[
-          for (int x = 0; x < gridX; ++x) Tile(x, y, 0),
+        <AnimatedTile>[
+          for (int x = 0; x < gridX; ++x) AnimatedTile(x, y, 0),
         ]
     ];
-    toAdd = Queue<Tile>();
+    toAdd = Queue<AnimatedTile>();
     focusNode = FocusNode();
     controller = AnimationController(vsync: this, duration: animationDuration) //
       ..addStatusListener(controllerListener);
@@ -116,7 +116,7 @@ class GameState extends State<Game> with TickerProviderStateMixin {
 
   void reset() {
     setState(() {
-      for (var Tile(:int y, :int x) in flattenedGrid) {
+      for (var AnimatedTile(:int y, :int x) in flattenedGrid) {
         grid[y][x].value = 0;
       }
 
@@ -139,7 +139,7 @@ class GameState extends State<Game> with TickerProviderStateMixin {
     //   grid[y][x].value = math.pow(2, i + 1).toInt();
     // }
 
-    for (Tile tile in flattenedGrid) {
+    for (AnimatedTile tile in flattenedGrid) {
       tile.resetAnimations();
     }
   }
@@ -147,11 +147,11 @@ class GameState extends State<Game> with TickerProviderStateMixin {
   void controllerListener(AnimationStatus status) {
     if (status case AnimationStatus.completed) {
       while (toAdd.isNotEmpty) {
-        var Tile(:int y, :int x, :int value) = toAdd.removeFirst();
+        var AnimatedTile(:int y, :int x, :int value) = toAdd.removeFirst();
 
         grid[y][x].value = value;
       }
-      for (Tile tile in flattenedGrid) {
+      for (AnimatedTile tile in flattenedGrid) {
         tile.resetAnimations();
       }
 
@@ -212,8 +212,8 @@ class GameState extends State<Game> with TickerProviderStateMixin {
   }
 
   void addNewTile() {
-    List<Tile> empty = flattenedGrid //
-        .where((Tile tile) => tile.value == 0)
+    List<AnimatedTile> empty = flattenedGrid //
+        .where((AnimatedTile tile) => tile.value == 0)
         .toList()
       ..shuffle();
 
@@ -221,11 +221,11 @@ class GameState extends State<Game> with TickerProviderStateMixin {
       return;
     }
 
-    var Tile(:int y, :int x) = empty.first;
+    var AnimatedTile(:int y, :int x) = empty.first;
     int chosen = randomTileNumber();
     grid[y][x].value = chosen;
 
-    toAdd.add(Tile(x, y, chosen)..appear(controller));
+    toAdd.add(AnimatedTile(x, y, chosen)..appear(controller));
   }
 
   void swipe(void Function() action) {
@@ -255,11 +255,11 @@ class GameState extends State<Game> with TickerProviderStateMixin {
   /// 1. the row has trailing zeros, i.e [0, 2, *, *]
   /// 2. the row has a merge, i.e [2, 2, *, *]
   /// ```
-  bool canSwipe(List<Tile> tiles) {
+  bool canSwipe(List<AnimatedTile> tiles) {
     for (int i = 0; i < tiles.length; ++i) {
-      Iterable<Tile> query = tiles.skip(i + 1).skipWhile((Tile t) => t.value == 0);
+      AnimatedTile? query = tiles.skip(i + 1).skipWhile((AnimatedTile t) => t.value == 0).firstOrNull;
 
-      if (query.isNotEmpty && (tiles[i].value == 0 || query.first.value == tiles[i].value)) {
+      if (query != null && (tiles[i].value == 0 || query.value == tiles[i].value)) {
         return true;
       }
     }
@@ -274,12 +274,12 @@ class GameState extends State<Game> with TickerProviderStateMixin {
 
   /// Merges [tiles] towards the left.
   /// i.e: [2, 0, 0, 8] -> [2, 8, 0, 0]
-  void mergeTiles(List<Tile> tiles) {
+  void mergeTiles(List<AnimatedTile> tiles) {
     for (int i = 0; i < tiles.length; ++i) {
       /// We get the sublist from [i], disregarding zeros until the first nonzero.
-      List<Tile> toCheck = tiles
+      List<AnimatedTile> toCheck = tiles
           .sublist(i) //
-          .skipWhile((Tile tile) => tile.value == 0)
+          .skipWhile((AnimatedTile tile) => tile.value == 0)
           .toList();
 
       /// If this happens, then the rest of the list from the right of [i]
@@ -288,20 +288,20 @@ class GameState extends State<Game> with TickerProviderStateMixin {
         return;
       }
 
-      Tile target = toCheck.first;
+      AnimatedTile target = toCheck.first;
 
-      Tile? merge = toCheck //
+      AnimatedTile? merge = toCheck //
           .skip(1)
-          .where((Tile tile) => tile.value != 0)
+          .where((AnimatedTile tile) => tile.value != 0)
           .firstOrNull;
 
-      if (merge case Tile(:int value) when value != target.value) {
+      if (merge case AnimatedTile(:int value) when value != target.value) {
         merge = null;
       }
 
       if (tiles[i].value == 0 || merge != null) {
-        var Tile(:int x, :int y) = tiles[i];
-        var Tile(:int value) = target;
+        var AnimatedTile(:int x, :int y) = tiles[i];
+        var AnimatedTile(:int value) = target;
 
         /// Animate the tile at position t.
         target.moveTo(controller, x, y);

@@ -1,7 +1,7 @@
 import "dart:collection";
 
 import "package:flutter/material.dart";
-import "package:twenty_fourty_eight/data_structures/tile.dart";
+import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 
 class Board extends StatelessWidget {
@@ -17,8 +17,8 @@ class Board extends StatelessWidget {
   final AnimationController controller;
   final double divisionSize;
   final double boardPadding;
-  final Iterable<Tile> flattenedGrid;
-  final Queue<Tile> toAdd;
+  final Iterable<AnimatedTile> flattenedGrid;
+  final Queue<AnimatedTile> toAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class Board extends StatelessWidget {
 
         return Stack(
           children: <Widget>[
-            for (var Tile(:int x, :int y) in flattenedGrid)
+            for (var AnimatedTile(:int x, :int y) in flattenedGrid)
               Positioned(
                 left: x * tileSize,
                 top: y * tileSize,
@@ -43,7 +43,7 @@ class Board extends StatelessWidget {
                   ),
                 ),
               ),
-            for (var Tile(
+            for (var AnimatedTile(
                   animatedValue: Animation<int>(:int value),
                   scale: Animation<double>(value: double scale),
                   animatedX: Animation<double>(value: double animatedX),
