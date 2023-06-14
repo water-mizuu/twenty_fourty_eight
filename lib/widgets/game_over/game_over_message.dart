@@ -1,4 +1,3 @@
-import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 
 class GameOverMessage extends StatelessWidget {
@@ -21,11 +20,5 @@ class GameOverMessage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(IntProperty("textOpacity", textOpacity));
   }
 }

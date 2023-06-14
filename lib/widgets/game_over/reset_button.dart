@@ -1,4 +1,3 @@
-import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:twenty_fourty_eight/widgets/game_over/game_over.dart";
 
@@ -27,11 +26,5 @@ class ResetButton extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DoubleProperty("buttonOpacity", buttonOpacity));
   }
 }

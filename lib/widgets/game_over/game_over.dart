@@ -101,15 +101,4 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
       },
     );
   }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<AnimationController>("controller", controller));
-    properties.add(DiagnosticsProperty<Animation<double>>("backgroundOpacity", backgroundOpacity));
-    properties.add(DiagnosticsProperty<Animation<double>>("textMoveDown", textMoveDown));
-    properties.add(DiagnosticsProperty<Animation<int>>("textOpacity", textOpacity));
-    properties.add(DiagnosticsProperty<Animation<double>>("buttonOpacity", buttonOpacity));
-    properties.add(DiagnosticsProperty<bool>("hasRendered", hasRendered));
-  }
 }

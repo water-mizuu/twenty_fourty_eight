@@ -2,7 +2,7 @@ import "dart:io";
 
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:twenty_fourty_eight/widgets/twenty_fourty_eight_app.dart";
+import "package:twenty_fourty_eight/widgets/application.dart";
 import "package:window_manager/window_manager.dart";
 
 void main() async {
@@ -13,5 +13,5 @@ void main() async {
     await WindowManager.instance.setMinimumSize(const Size(400, 400));
     // await WindowManager.instance.setSize(const Size(400, 650));
   }
-  runApp(const TwentyFourtyEightApp());
+  runApp(const Application());
 }

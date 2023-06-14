@@ -1,4 +1,3 @@
-import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:twenty_fourty_eight/widgets/game_over/game_over.dart";
 import "package:twenty_fourty_eight/widgets/game_over/game_over_message.dart";
@@ -33,13 +32,5 @@ class GameOverScreen extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DoubleProperty("textMoveDown", textMoveDown));
-    properties.add(IntProperty("textOpacity", textOpacity));
-    properties.add(DoubleProperty("buttonOpacity", buttonOpacity));
   }
 }
