@@ -1,7 +1,6 @@
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
-import "package:twenty_fourty_eight/shared.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
 import "package:twenty_fourty_eight/widgets/tile/active_tile.dart";
 import "package:twenty_fourty_eight/widgets/tile/background_tile.dart";
@@ -33,7 +32,7 @@ class Board extends StatelessWidget {
 
             return Stack(
               children: <Widget>[
-                for (var (int y, int x) in state.grid.indices) //
+                for (var AnimatedTile(:int y, :int x) in state.renderTiles) //
                   BackgroundTile(x: x, tileSize: tileSize, y: y),
                 for (AnimatedTile tile in state.renderTiles)
                   if (tile.animatedValue.value != 0) //

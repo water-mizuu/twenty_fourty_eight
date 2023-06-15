@@ -13,7 +13,9 @@ class AnimatedTile {
   late Animation<int> animatedValue;
   late Animation<double> scale;
 
-  AnimatedTile(this.x, this.y, this.value) {
+  AnimatedTile(({int y, int x}) index, this.value)
+      : y = index.y,
+        x = index.x {
     resetAnimations();
   }
 

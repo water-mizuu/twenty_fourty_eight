@@ -23,31 +23,18 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
 
   late Animation<double> buttonOpacity;
 
-  late bool hasRendered = false;
-
   @override
   void initState() {
     super.initState();
 
-    controller = new AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))
-      ..addStatusListener((AnimationStatus status) {
-        if (status == AnimationStatus.completed) {
-          setState(() => hasRendered = true);
-        }
-      });
-    resetAnimations();
-
-    controller.forward();
-  }
-
-  void resetAnimations() {
+    controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
     if (const Interval(0.00, 0.50, curve: Curves.ease) case Curve curve) {
       backgroundOpacity = Tween<double>(begin: 0.0, end: 1.0) //
           .animate(CurvedAnimation(parent: controller, curve: curve));
     }
 
     if (const Interval(0.50, 0.75, curve: Curves.ease) case Curve curve) {
-      textMoveDown = Tween<double>(begin: 0.30, end: 0.35) //
+      textMoveDown = Tween<double>(begin: 0.95, end: 1.00) //
           .animate(CurvedAnimation(parent: controller, curve: curve));
       textOpacity = IntTween(begin: 0, end: 255) //
           .animate(CurvedAnimation(parent: controller, curve: curve));
@@ -57,12 +44,19 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
       buttonOpacity = Tween<double>(begin: 0.0, end: 1.0) //
           .animate(CurvedAnimation(parent: controller, curve: curve));
     }
+
+    controller.forward();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    var GameOver(:double gridSizeY, :double gridSizeX) = widget;
-
     return AnimatedBuilder(
       animation: controller,
       builder: (BuildContext context, Widget? child) {
@@ -75,14 +69,11 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
           opacity: backgroundOpacity,
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
-            child: Container(
-              height: gridSizeY,
-              width: gridSizeX,
+            child: DecoratedBox(
               decoration: const BoxDecoration(color: Color.fromARGB(128, 192, 192, 192)),
               child: GameOverScreen(
-                textMoveDown: gridSizeY * textMoveDown,
+                textMoveDown: textMoveDown,
                 textOpacity: textOpacity,
-                widget: widget,
                 buttonOpacity: buttonOpacity,
               ),
             ),
