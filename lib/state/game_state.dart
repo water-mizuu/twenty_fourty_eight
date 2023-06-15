@@ -1,10 +1,11 @@
+import "dart:async";
 import "dart:collection";
 
 import "package:flutter/animation.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
-import "package:twenty_fourty_eight/shared.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
-import "package:twenty_fourty_eight/widgets/game.dart";
+import "package:twenty_fourty_eight/shared/extensions.dart";
+import "package:twenty_fourty_eight/shared/typedef.dart";
 
 class GameState {
   static const Duration animationDuration = Duration(milliseconds: 250);
@@ -12,29 +13,29 @@ class GameState {
   bool actionIsUnlocked;
   int score;
 
-  final List2<AnimatedTile> grid;
-  final Queue<AnimatedTile> toAdd;
-  final GamerState parent;
-
   late final AnimationController controller;
 
-  GameState(this.parent)
+  late final List2<AnimatedTile> _grid;
+  late final Queue<AnimatedTile> _toAdd;
+  late final StreamController<void> _streamController;
+
+  GameState(TickerProvider parent)
       : actionIsUnlocked = true,
-        score = 0,
-        grid = <List<AnimatedTile>>[
-          for (int y = 0; y < gridY; ++y)
-            <AnimatedTile>[
-              for (int x = 0; x < gridX; ++x) AnimatedTile(x, y, 0),
-            ]
-        ],
-        toAdd = Queue<AnimatedTile>() {
-    controller = AnimationController(vsync: parent, duration: animationDuration) //
+        score = 0 {
+    _streamController = StreamController<void>();
+
+    _toAdd = Queue<AnimatedTile>();
+    _grid = List2<AnimatedTile>.generate(
+      gridY,
+      (int y) => List<AnimatedTile>.generate(gridX, (int x) => AnimatedTile((y: y, x: x), 0)),
+    );
+    controller = AnimationController(vsync: parent, duration: animationDuration)
       ..addStatusListener((AnimationStatus status) {
         if (status case AnimationStatus.completed) {
-          while (toAdd.isNotEmpty) {
-            var AnimatedTile(:int y, :int x, :int value) = toAdd.removeFirst();
+          while (_toAdd.isNotEmpty) {
+            var AnimatedTile(:int y, :int x, :int value) = _toAdd.removeFirst();
 
-            grid[y][x].value = value;
+            _grid[y][x].value = value;
           }
           for (AnimatedTile tile in flattenedGrid) {
             tile.resetAnimations();
@@ -46,45 +47,61 @@ class GameState {
       });
   }
 
-  Iterable<AnimatedTile> get flattenedGrid => grid.expand((List<AnimatedTile> r) => r);
-  Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(toAdd);
+  Iterable<AnimatedTile> get flattenedGrid => _grid.expand((List<AnimatedTile> r) => r);
+  Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_toAdd);
+  Stream<void> get updateStream => _streamController.stream;
 
   void dispose() {
     controller.dispose();
-    grid.clear();
-    toAdd.clear();
+    _grid.clear();
+    _toAdd.clear();
+    unawaited(_streamController.close());
   }
 
-  static int randomTileNumber() {
+  void reset() {
+    for (var AnimatedTile(:int y, :int x) in flattenedGrid) {
+      _grid[y][x].value = 0;
+    }
+
+    _startGame();
+    _alert();
+  }
+
+  bool canSwipeLeft() => _grid.any(_canSwipe);
+  bool canSwipeRight() => _grid.reversedRows.any(_canSwipe);
+  bool canSwipeUp() => _grid.columns.any(_canSwipe);
+  bool canSwipeDown() => _grid.columns.reversedRows.any(_canSwipe);
+  bool canSwipeAnywhere() => canSwipeUp() || canSwipeDown() || canSwipeLeft() || canSwipeRight();
+
+  void swipeUp() => _swipe(() => _grid.columns.forEach(_mergeTiles));
+  void swipeDown() => _swipe(() => _grid.columns.reversedRows.forEach(_mergeTiles));
+  void swipeLeft() => _swipe(() => _grid.forEach(_mergeTiles));
+  void swipeRight() => _swipe(() => _grid.reversedRows.forEach(_mergeTiles));
+
+  static int _randomTileNumber() {
     return switch (random.nextDouble()) {
       <= 0.25 => 4,
       _ => 2,
     };
   }
 
-  void reset() {
-    for (var AnimatedTile(:int y, :int x) in flattenedGrid) {
-      grid[y][x].value = 0;
-    }
-
-    startGame();
-    parent.reset();
-  }
-
-  void startGame() {
+  void _startGame() {
     score = 0;
 
-    List<(int, int)> shuffledIndices = grid.indices.toList()..shuffle();
+    List<(int, int)> shuffledIndices = _grid.indices.toList()..shuffle();
     for (var (int y, int x) in shuffledIndices.take(2)) {
-      grid[y][x].value = randomTileNumber();
+      _grid[y][x].value = _randomTileNumber();
     }
+    // for (var (int y, int x) in shuffledIndices.skip(1)) {
+    //   grid[y][x].value = pow(2, y * gridY + x + 1).floor();
+    // }
 
     for (AnimatedTile tile in flattenedGrid) {
       tile.resetAnimations();
     }
   }
 
-  void addNewTile() {
+  void _addNewTile() {
     List<AnimatedTile> empty = flattenedGrid //
         .where((AnimatedTile tile) => tile.value == 0)
         .toList()
@@ -95,32 +112,29 @@ class GameState {
     }
 
     var AnimatedTile(:int y, :int x) = empty.first;
-    int chosen = randomTileNumber();
-    grid[y][x].value = chosen;
+    int chosen = _randomTileNumber();
+    _grid[y][x].value = chosen;
 
-    toAdd.add(AnimatedTile(x, y, chosen)..appear(controller));
+    _toAdd.add(AnimatedTile((y: y, x: x), chosen)..appear(controller));
   }
 
-  void swipe(void Function() action) {
+  void _swipe(void Function() action) {
     /// If the swipe actions are locked, then we ignore it.
     if (!actionIsUnlocked) {
       return;
     }
 
     action();
-    addNewTile();
+    _addNewTile();
     actionIsUnlocked = false;
     controller.forward(from: 0);
 
-    parent.reset();
+    _alert();
   }
 
-  bool canSwipeAnywhere() => canSwipeUp() || canSwipeDown() || canSwipeLeft() || canSwipeRight();
-
-  bool canSwipeLeft() => grid.any(canSwipe);
-  bool canSwipeRight() => grid.reversedRows.any(canSwipe);
-  bool canSwipeUp() => grid.columns.any(canSwipe);
-  bool canSwipeDown() => grid.columns.reversedRows.any(canSwipe);
+  void _alert() {
+    _streamController.add(null);
+  }
 
   /// Returns a [bool] indicating whether [tiles] can be swiped to left
   ///   from the following conditions:
@@ -128,7 +142,7 @@ class GameState {
   /// 1. the row has trailing zeros, i.e [0, 2, *, *]
   /// 2. the row has a merge, i.e [2, 2, *, *]
   /// ```
-  bool canSwipe(List<AnimatedTile> tiles) {
+  bool _canSwipe(List<AnimatedTile> tiles) {
     for (int i = 0; i < tiles.length; ++i) {
       AnimatedTile? query = tiles.skip(i + 1).skipWhile((AnimatedTile t) => t.value == 0).firstOrNull;
 
@@ -140,14 +154,9 @@ class GameState {
     return false;
   }
 
-  void swipeUp() => swipe(() => grid.columns.forEach(mergeTiles));
-  void swipeDown() => swipe(() => grid.columns.reversedRows.forEach(mergeTiles));
-  void swipeLeft() => swipe(() => grid.forEach(mergeTiles));
-  void swipeRight() => swipe(() => grid.reversedRows.forEach(mergeTiles));
-
   /// Merges [tiles] towards the left.
   /// i.e: [2, 0, 0, 8] -> [2, 8, 0, 0]
-  void mergeTiles(List<AnimatedTile> tiles) {
+  void _mergeTiles(List<AnimatedTile> tiles) {
     for (int i = 0; i < tiles.length; ++i) {
       /// We get the sublist from [i], disregarding zeros until the first nonzero.
       List<AnimatedTile> toCheck = tiles

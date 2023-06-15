@@ -11,11 +11,10 @@ class Game extends StatefulWidget {
   const Game({super.key});
 
   @override
-  State<Game> createState() => GamerState();
+  State<Game> createState() => _GameState();
 }
 
-class GamerState extends State<Game> with TickerProviderStateMixin {
-  static const Duration animationDuration = Duration(milliseconds: 250);
+class _GameState extends State<Game> with SingleTickerProviderStateMixin {
   static const double boardPadding = 4;
 
   late final GameState state;
@@ -24,7 +23,7 @@ class GamerState extends State<Game> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    state = GameState(this)..startGame();
+    state = GameState(this)..reset();
   }
 
   @override
@@ -52,29 +51,35 @@ class GamerState extends State<Game> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Center(
-              child: Stack(
-                children: <Widget>[
-                  Container(
-                    height: gridSizeY,
-                    width: gridSizeX,
-                    padding: const EdgeInsets.all(boardPadding),
-                    decoration: roundRadius.copyWith(color: darkBrown),
-                    child: Board(
-                      divisionSize: divisionSize,
-                      boardPadding: boardPadding,
-                    ),
-                  ),
-                  if (!state.canSwipeAnywhere()) GameOver(gridSizeY, gridSizeX),
-                ],
+              child: StreamBuilder<void>(
+                stream: state.updateStream,
+                builder: (BuildContext context, _) {
+                  return Stack(
+                    children: <Widget>[
+                      Container(
+                        height: gridSizeY,
+                        width: gridSizeX,
+                        padding: const EdgeInsets.all(boardPadding),
+                        decoration: roundRadius.copyWith(color: darkBrown),
+                        child: Board(
+                          divisionSize: divisionSize,
+                          boardPadding: boardPadding,
+                        ),
+                      ),
+                      if (!state.canSwipeAnywhere())
+                        SizedBox(
+                          height: gridSizeY,
+                          width: gridSizeX,
+                          child: GameOver(gridSizeY, gridSizeX),
+                        ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  void reset() {
-    setState(() {});
   }
 }
