@@ -8,7 +8,7 @@ import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/shared/typedef.dart";
 
 class GameState {
-  static const Duration animationDuration = Duration(milliseconds: 250);
+  static final Duration animationDuration = 250.milliseconds;
 
   bool actionIsUnlocked;
   int score;

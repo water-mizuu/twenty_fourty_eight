@@ -1,6 +1,7 @@
 import "dart:ui";
 
 import "package:flutter/material.dart";
+import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/widgets/game_over/game_over_screen.dart";
 
 class GameOver extends StatefulWidget {
@@ -27,7 +28,7 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
 
-    controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
+    controller = AnimationController(vsync: this, duration: 1000.milliseconds);
     if (const Interval(0.00, 0.50, curve: Curves.ease) case Curve curve) {
       backgroundOpacity = Tween<double>(begin: 0.0, end: 1.0) //
           .animate(CurvedAnimation(parent: controller, curve: curve));

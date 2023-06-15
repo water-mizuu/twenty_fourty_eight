@@ -32,6 +32,10 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Vscode related
+.metals/
+.vscode/
+
 # Symbolication related
 app.*.symbols
 
