@@ -1,5 +1,6 @@
 import "package:flutter/widgets.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
+import "package:twenty_fourty_eight/shared/extensions.dart";
 
 class BackgroundTile extends StatelessWidget {
   const BackgroundTile({
@@ -9,21 +10,22 @@ class BackgroundTile extends StatelessWidget {
     super.key,
   });
 
+  final int y;
   final int x;
   final double tileSize;
-  final int y;
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: x * tileSize,
       top: y * tileSize,
+      left: x * tileSize,
       width: tileSize,
       height: tileSize,
       child: Center(
         child: Container(
-          width: tileSize * 0.95,
-          height: tileSize * 0.95,
+          margin: EdgeInsets.all(tileSize * 2.5.percent),
+          height: tileSize,
+          width: tileSize,
           decoration: roundRadius.copyWith(color: lightBrown),
         ),
       ),

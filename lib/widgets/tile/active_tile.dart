@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
+import "package:twenty_fourty_eight/shared/extensions.dart";
 
 class ActiveTile extends StatelessWidget {
   const ActiveTile({
@@ -15,33 +16,38 @@ class ActiveTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var AnimatedTile(
-      animatedValue: Animation<int>(:int value),
       scale: Animation<double>(value: double scale),
+      animatedValue: Animation<int>(value: int animatedValue),
       animatedX: Animation<double>(value: double animatedX),
-      animatedY: Animation<double>(value: double animatedY)
+      animatedY: Animation<double>(value: double animatedY),
     ) = tile;
+    var (Color backgroundColor, Color foregroundColor) = tileColor(animatedValue);
 
     return Positioned(
       left: animatedX * tileSize,
       top: animatedY * tileSize,
-      width: tileSize,
       height: tileSize,
+      width: tileSize,
       child: Center(
-        child: Container(
-          width: (tileSize * 0.95) * scale,
-          height: (tileSize * 0.95) * scale,
-          decoration: roundRadius.copyWith(color: tileBackgroundColor(value)),
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  "$value",
-                  style: TextStyle(
-                    color: value <= 4 ? greyText : Colors.white,
-                    fontSize: (tileSize - 4 * 2) * scale * 4 / 9,
-                    fontWeight: FontWeight.w900,
+        child: Transform.scale(
+          scale: scale,
+          child: Container(
+            margin: EdgeInsets.all(tileSize * 2.5.percent),
+            height: tileSize,
+            width: tileSize,
+            decoration: roundRadius.copyWith(color: backgroundColor),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    "$animatedValue",
+                    style: TextStyle(
+                      color: foregroundColor,
+                      fontSize: tileSize * 4 / 9,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
@@ -52,18 +58,18 @@ class ActiveTile extends StatelessWidget {
     );
   }
 
-  static Color tileBackgroundColor(int number) => switch (number) {
-        2 => const Color.fromARGB(255, 238, 228, 220),
-        4 => const Color.fromARGB(255, 238, 225, 201),
-        8 => const Color.fromARGB(255, 243, 178, 122),
-        16 => const Color.fromARGB(255, 246, 150, 100),
-        32 => const Color.fromARGB(255, 247, 124, 95),
-        64 => const Color.fromARGB(255, 247, 95, 59),
-        128 => const Color.fromARGB(255, 237, 208, 115),
-        256 => const Color.fromARGB(255, 237, 204, 98),
-        512 => const Color.fromARGB(255, 237, 201, 80),
-        1024 => const Color.fromARGB(255, 237, 197, 63),
-        2048 => const Color.fromARGB(255, 237, 194, 46),
-        _ => const Color.fromARGB(255, 60, 58, 51),
+  static (Color, Color) tileColor(int number) => switch (number) {
+        2 => const (Color.fromARGB(255, 238, 228, 220), grayText),
+        4 => const (Color.fromARGB(255, 238, 225, 201), grayText),
+        8 => const (Color.fromARGB(255, 243, 178, 122), whiteText),
+        16 => const (Color.fromARGB(255, 246, 150, 100), whiteText),
+        32 => const (Color.fromARGB(255, 247, 124, 95), whiteText),
+        64 => const (Color.fromARGB(255, 247, 95, 59), whiteText),
+        128 => const (Color.fromARGB(255, 237, 208, 115), whiteText),
+        256 => const (Color.fromARGB(255, 237, 204, 98), whiteText),
+        512 => const (Color.fromARGB(255, 237, 201, 80), whiteText),
+        1024 => const (Color.fromARGB(255, 237, 197, 63), whiteText),
+        2048 => const (Color.fromARGB(255, 237, 194, 46), whiteText),
+        _ => const (Color.fromARGB(255, 60, 58, 51), whiteText),
       };
 }
