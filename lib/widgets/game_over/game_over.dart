@@ -1,14 +1,12 @@
 import "dart:ui";
 
 import "package:flutter/material.dart";
+import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/widgets/game_over/game_over_screen.dart";
 
 class GameOver extends StatefulWidget {
-  final double gridSizeY;
-  final double gridSizeX;
-
-  const GameOver(this.gridSizeY, this.gridSizeX, {super.key});
+  const GameOver({super.key});
 
   @override
   State<GameOver> createState() => _GameOverState();
@@ -71,7 +69,10 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
             child: DecoratedBox(
-              decoration: const BoxDecoration(color: Color.fromARGB(128, 192, 192, 192)),
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(128, 192, 192, 192),
+                borderRadius: roundRadius.borderRadius,
+              ),
               child: GameOverScreen(
                 textMoveDown: textMoveDown,
                 textOpacity: textOpacity,

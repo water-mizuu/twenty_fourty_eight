@@ -17,12 +17,14 @@ class GameState {
 
   late final List2<AnimatedTile> _grid;
   late final Queue<AnimatedTile> _toAdd;
-  late final StreamController<void> _streamController;
+  late final StreamController<void> _updateController;
+  late final StreamController<int> _scoreController;
 
   GameState(TickerProvider parent)
       : actionIsUnlocked = true,
         score = 0 {
-    _streamController = StreamController<void>();
+    _updateController = StreamController<void>();
+    _scoreController = StreamController<int>();
 
     _toAdd = Queue<AnimatedTile>();
     _grid = List2<AnimatedTile>.generate(
@@ -49,13 +51,14 @@ class GameState {
 
   Iterable<AnimatedTile> get flattenedGrid => _grid.expand((List<AnimatedTile> r) => r);
   Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_toAdd);
-  Stream<void> get updateStream => _streamController.stream;
+  Stream<void> get updateStream => _updateController.stream;
+  Stream<int> get scoreStream => _scoreController.stream;
 
   void dispose() {
     controller.dispose();
     _grid.clear();
     _toAdd.clear();
-    unawaited(_streamController.close());
+    unawaited(_updateController.close());
   }
 
   void reset() {
@@ -133,7 +136,7 @@ class GameState {
   }
 
   void _alert() {
-    _streamController.add(null);
+    _updateController.add(null);
   }
 
   /// Returns a [bool] indicating whether [tiles] can be swiped to left
@@ -203,6 +206,8 @@ class GameState {
 
           /// And the last animation
           target.changeNumber(controller, 0);
+
+          _addScore(value);
         }
 
         /// Update their values after the update.
@@ -211,5 +216,11 @@ class GameState {
         tiles[i].value = value;
       }
     }
+  }
+
+  void _addScore(int value) {
+    score += value;
+
+    _scoreController.add(score);
   }
 }

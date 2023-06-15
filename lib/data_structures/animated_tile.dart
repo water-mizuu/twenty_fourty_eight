@@ -44,8 +44,8 @@ class AnimatedTile {
 
   void bounce(Animation<double> parent) {
     Animatable<double> animatable = TweenSequence<double>(<TweenSequenceItem<double>>[
-      TweenSequenceItem<double>(tween: Tween<double>(begin: 1, end: 1.5), weight: 0.5),
-      TweenSequenceItem<double>(tween: Tween<double>(begin: 1.5, end: 1), weight: 0.5),
+      TweenSequenceItem<double>(tween: Tween<double>(begin: 1, end: 1.2), weight: 0.5),
+      TweenSequenceItem<double>(tween: Tween<double>(begin: 1.2, end: 1), weight: 0.5),
     ]);
     Animation<double> animation = CurvedAnimation(
       parent: parent,

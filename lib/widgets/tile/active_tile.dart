@@ -1,54 +1,41 @@
 import "package:flutter/material.dart";
-import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
-import "package:twenty_fourty_eight/shared/extensions.dart";
+import "package:twenty_fourty_eight/widgets/tile/game_tile.dart";
 
-class ActiveTile extends StatelessWidget {
+class ActiveTile extends StatelessWidget with GameTile {
   const ActiveTile({
+    required this.animatedValue,
+    required this.scale,
     required this.tileSize,
-    required this.tile,
     super.key,
   });
 
+  final int animatedValue;
+  final double scale;
+
+  @override
   final double tileSize;
-  final AnimatedTile tile;
 
   @override
   Widget build(BuildContext context) {
-    var AnimatedTile(
-      scale: Animation<double>(value: double scale),
-      animatedValue: Animation<int>(value: int animatedValue),
-      animatedX: Animation<double>(value: double animatedX),
-      animatedY: Animation<double>(value: double animatedY),
-    ) = tile;
     var (Color backgroundColor, Color foregroundColor) = tileColor(animatedValue);
 
-    return Positioned(
-      left: animatedX * tileSize,
-      top: animatedY * tileSize,
-      height: tileSize,
-      width: tileSize,
-      child: Center(
-        child: Transform.scale(
-          scale: scale,
+    return Transform.scale(
+      scale: scale,
+      child: Container(
+        margin: margin,
+        decoration: roundRadius.copyWith(color: backgroundColor),
+        child: Center(
           child: Container(
-            margin: EdgeInsets.all(tileSize * 2.5.percent),
-            height: tileSize,
-            width: tileSize,
-            decoration: roundRadius.copyWith(color: backgroundColor),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    "$animatedValue",
-                    style: TextStyle(
-                      color: foregroundColor,
-                      fontSize: tileSize * 4 / 9,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
+            padding: const EdgeInsets.all(4),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                "$animatedValue",
+                style: TextStyle(
+                  color: foregroundColor,
+                  fontSize: tileSize * 4 / 9,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),

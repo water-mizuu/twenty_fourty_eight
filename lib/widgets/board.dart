@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
+import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
 import "package:twenty_fourty_eight/widgets/tile/active_tile.dart";
 import "package:twenty_fourty_eight/widgets/tile/background_tile.dart";
@@ -8,38 +9,71 @@ import "package:twenty_fourty_eight/widgets/tile/background_tile.dart";
 class Board extends StatelessWidget {
   const Board({
     required this.divisionSize,
+    required this.tileSize,
     required this.boardPadding,
     super.key,
   });
 
   final double divisionSize;
+  final double tileSize;
   final double boardPadding;
 
   @override
   Widget build(BuildContext context) {
     GameState state = context.read<GameState>();
 
-    return KeyboardListener(
-      focusNode: FocusNode(),
-      onKeyEvent: (KeyEvent event) => keyEventListener(state, event),
-      child: GestureDetector(
-        onVerticalDragEnd: (DragEndDetails details) => verticalDragListener(state, details),
-        onHorizontalDragEnd: (DragEndDetails details) => horizontalDragListener(state, details),
-        child: AnimatedBuilder(
-          animation: state.controller,
-          builder: (BuildContext context, _) {
-            double tileSize = divisionSize - boardPadding * 0.5;
-
-            return Stack(
-              children: <Widget>[
-                for (var AnimatedTile(:int y, :int x) in state.renderTiles) //
-                  BackgroundTile(x: x, tileSize: tileSize, y: y),
-                for (AnimatedTile tile in state.renderTiles)
-                  if (tile.animatedValue.value != 0) //
-                    ActiveTile(tile: tile, tileSize: tileSize),
-              ],
-            );
-          },
+    return Container(
+      padding: EdgeInsets.all(boardPadding),
+      decoration: roundRadius.copyWith(color: darkBrown),
+      child: KeyboardListener(
+        focusNode: FocusNode(),
+        onKeyEvent: (KeyEvent event) => keyEventListener(state, event),
+        child: GestureDetector(
+          onVerticalDragEnd: (DragEndDetails details) => verticalDragListener(state, details),
+          onHorizontalDragEnd: (DragEndDetails details) => horizontalDragListener(state, details),
+          child: Stack(
+            children: <Widget>[
+              for (var AnimatedTile(:int y, :int x) in state.renderTiles) //
+                Positioned(
+                  top: y * divisionSize,
+                  left: x * divisionSize,
+                  width: divisionSize,
+                  height: divisionSize,
+                  child: BackgroundTile(
+                    y: y,
+                    x: x,
+                    tileSize: tileSize,
+                  ),
+                ),
+              AnimatedBuilder(
+                animation: state.controller,
+                builder: (BuildContext context, _) {
+                  return Stack(
+                    children: <Widget>[
+                      for (var AnimatedTile(
+                            animatedX: Animation<double>(value: double animatedX),
+                            animatedY: Animation<double>(value: double animatedY),
+                            animatedValue: Animation<int>(value: int animatedValue),
+                            scale: Animation<double>(value: double scale),
+                          ) in state.renderTiles)
+                        if (animatedValue != 0) //
+                          Positioned(
+                            left: animatedX * divisionSize,
+                            top: animatedY * divisionSize,
+                            height: divisionSize,
+                            width: divisionSize,
+                            child: ActiveTile(
+                              scale: scale,
+                              animatedValue: animatedValue,
+                              tileSize: tileSize,
+                            ),
+                          ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
