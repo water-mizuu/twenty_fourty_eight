@@ -10,43 +10,45 @@ import "package:twenty_fourty_eight/shared/typedef.dart";
 class GameState {
   static final Duration animationDuration = 250.milliseconds;
 
-  bool actionIsUnlocked;
-  int score;
-
   late final AnimationController controller;
+
+  int score;
 
   late final List2<AnimatedTile> _grid;
   late final Queue<AnimatedTile> _toAdd;
   late final StreamController<void> _updateController;
   late final StreamController<int> _scoreController;
 
+  bool _actionIsUnlocked;
+  int _scoreBuffer;
+
   GameState(TickerProvider parent)
-      : actionIsUnlocked = true,
-        score = 0 {
-    _updateController = StreamController<void>();
-    _scoreController = StreamController<int>();
+      : controller = AnimationController(vsync: parent, duration: animationDuration),
+        score = 0,
+        _actionIsUnlocked = true,
+        _updateController = StreamController<void>(),
+        _scoreController = StreamController<int>(),
+        _toAdd = Queue<AnimatedTile>(),
+        _grid = List2<AnimatedTile>.generate(
+          gridY,
+          (int y) => List<AnimatedTile>.generate(gridX, (int x) => AnimatedTile((y: y, x: x), 0)),
+        ),
+        _scoreBuffer = 0 {
+    controller.addStatusListener((AnimationStatus status) {
+      if (status case AnimationStatus.completed) {
+        while (_toAdd.isNotEmpty) {
+          var AnimatedTile(:int y, :int x, :int value) = _toAdd.removeFirst();
 
-    _toAdd = Queue<AnimatedTile>();
-    _grid = List2<AnimatedTile>.generate(
-      gridY,
-      (int y) => List<AnimatedTile>.generate(gridX, (int x) => AnimatedTile((y: y, x: x), 0)),
-    );
-    controller = AnimationController(vsync: parent, duration: animationDuration)
-      ..addStatusListener((AnimationStatus status) {
-        if (status case AnimationStatus.completed) {
-          while (_toAdd.isNotEmpty) {
-            var AnimatedTile(:int y, :int x, :int value) = _toAdd.removeFirst();
-
-            _grid[y][x].value = value;
-          }
-          for (AnimatedTile tile in flattenedGrid) {
-            tile.resetAnimations();
-          }
-
-          controller.reset();
-          actionIsUnlocked = true;
+          _grid[y][x].value = value;
         }
-      });
+        for (AnimatedTile tile in flattenedGrid) {
+          tile.resetAnimations();
+        }
+
+        controller.reset();
+        _actionIsUnlocked = true;
+      }
+    });
   }
 
   Iterable<AnimatedTile> get flattenedGrid => _grid.expand((List<AnimatedTile> r) => r);
@@ -59,6 +61,7 @@ class GameState {
     _grid.clear();
     _toAdd.clear();
     unawaited(_updateController.close());
+    unawaited(_scoreController.close());
   }
 
   void reset() {
@@ -96,7 +99,7 @@ class GameState {
       _grid[y][x].value = _randomTileNumber();
     }
     // for (var (int y, int x) in shuffledIndices.skip(1)) {
-    //   grid[y][x].value = pow(2, y * gridY + x + 1).floor();
+    //   _grid[y][x].value = pow(2, y * gridY + x + 1).floor();
     // }
 
     for (AnimatedTile tile in flattenedGrid) {
@@ -123,13 +126,13 @@ class GameState {
 
   void _swipe(void Function() action) {
     /// If the swipe actions are locked, then we ignore it.
-    if (!actionIsUnlocked) {
+    if (!_actionIsUnlocked) {
       return;
     }
 
     action();
     _addNewTile();
-    actionIsUnlocked = false;
+    _actionIsUnlocked = false;
     controller.forward(from: 0);
 
     _alert();
@@ -137,6 +140,10 @@ class GameState {
 
   void _alert() {
     _updateController.add(null);
+
+    score += _scoreBuffer;
+    _scoreController.add(_scoreBuffer);
+    _scoreBuffer = 0;
   }
 
   /// Returns a [bool] indicating whether [tiles] can be swiped to left
@@ -219,8 +226,6 @@ class GameState {
   }
 
   void _addScore(int value) {
-    score += value;
-
-    _scoreController.add(score);
+    _scoreBuffer += value;
   }
 }
