@@ -69,10 +69,7 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
             child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(128, 192, 192, 192),
-                borderRadius: roundRadius.borderRadius,
-              ),
+              decoration: roundRadius.copyWith(color: const Color.fromARGB(128, 192, 192, 192)),
               child: GameOverScreen(
                 textMoveDown: textMoveDown,
                 textOpacity: textOpacity,

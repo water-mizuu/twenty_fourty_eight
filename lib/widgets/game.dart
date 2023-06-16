@@ -99,7 +99,12 @@ class _GameState extends State<Game> with SingleTickerProviderStateMixin {
                             divisionSize: divisionSize,
                             tileSize: tileSize,
                           ),
-                          if (!state.canSwipeAnywhere()) const GameOver(),
+                          if (!state.canSwipeAnywhere())
+                            Positioned(
+                              height: gridSizeY + 2.1 * boardPadding,
+                              width: gridSizeX + 2.1 * boardPadding,
+                              child: const GameOver(),
+                            ),
                         ],
                       );
                     },
