@@ -8,31 +8,39 @@ import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/shared/typedef.dart";
 
 class GameState {
-  static final Duration animationDuration = 250.milliseconds;
+  static const int defaultGridY = 3;
+  static const int defaultGridX = 5;
+  static const Duration animationDuration = Duration(milliseconds: 250);
 
   late final AnimationController controller;
 
   int score;
+  int gridY;
+  int gridX;
 
   late final List2<AnimatedTile> _grid;
   late final Queue<AnimatedTile> _toAdd;
   late final StreamController<void> _updateController;
+  late final StreamController<int> _addedScoreController;
   late final StreamController<int> _scoreController;
 
   bool _actionIsUnlocked;
   int _scoreBuffer;
 
-  GameState(TickerProvider parent)
+  GameState(TickerProvider parent, [this.gridY = defaultGridY, this.gridX = defaultGridX])
       : controller = AnimationController(vsync: parent, duration: animationDuration),
         score = 0,
         _actionIsUnlocked = true,
         _updateController = StreamController<void>(),
+        _addedScoreController = StreamController<int>(),
         _scoreController = StreamController<int>(),
         _toAdd = Queue<AnimatedTile>(),
-        _grid = List2<AnimatedTile>.generate(
-          gridY,
-          (int y) => List<AnimatedTile>.generate(gridX, (int x) => AnimatedTile((y: y, x: x), 0)),
-        ),
+        _grid = <List<AnimatedTile>>[
+          for (int y = 0; y < gridY; ++y)
+            <AnimatedTile>[
+              for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
+            ],
+        ],
         _scoreBuffer = 0 {
     controller.addStatusListener((AnimationStatus status) {
       if (status case AnimationStatus.completed) {
@@ -54,6 +62,7 @@ class GameState {
   Iterable<AnimatedTile> get flattenedGrid => _grid.expand((List<AnimatedTile> r) => r);
   Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_toAdd);
   Stream<void> get updateStream => _updateController.stream;
+  Stream<int> get addedScoreStream => _addedScoreController.stream;
   Stream<int> get scoreStream => _scoreController.stream;
 
   void dispose() {
@@ -61,6 +70,7 @@ class GameState {
     _grid.clear();
     _toAdd.clear();
     unawaited(_updateController.close());
+    unawaited(_addedScoreController.close());
     unawaited(_scoreController.close());
   }
 
@@ -94,13 +104,10 @@ class GameState {
   void _startGame() {
     score = 0;
 
-    List<(int, int)> shuffledIndices = _grid.indices.toList()..shuffle();
-    for (var (int y, int x) in shuffledIndices.take(2)) {
+    List<AnimatedTile> shuffledTiles = <AnimatedTile>[...flattenedGrid]..shuffle();
+    for (var AnimatedTile(:int y, :int x) in shuffledTiles.take(2)) {
       _grid[y][x].value = _randomTileNumber();
     }
-    // for (var (int y, int x) in shuffledIndices.skip(1)) {
-    //   _grid[y][x].value = pow(2, y * gridY + x + 1).floor();
-    // }
 
     for (AnimatedTile tile in flattenedGrid) {
       tile.resetAnimations();
@@ -142,7 +149,10 @@ class GameState {
     _updateController.add(null);
 
     score += _scoreBuffer;
-    _scoreController.add(_scoreBuffer);
+    if (_scoreBuffer > 0) {
+      _addedScoreController.add(_scoreBuffer);
+    }
+    _scoreController.add(score);
     _scoreBuffer = 0;
   }
 
