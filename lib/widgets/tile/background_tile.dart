@@ -6,7 +6,6 @@ class BackgroundTile extends StatelessWidget with GameTile {
   const BackgroundTile({
     required this.y,
     required this.x,
-    required this.tileSize,
     super.key,
   });
 
@@ -14,13 +13,12 @@ class BackgroundTile extends StatelessWidget with GameTile {
   final int x;
 
   @override
-  final double tileSize;
-
-  @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: margin,
-      decoration: roundRadius.copyWith(color: lightBrown),
-    );
+    return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
+      return Container(
+        margin: EdgeInsets.all(constraints.constrainHeight() * tileMarginRatio),
+        decoration: roundRadius.copyWith(color: lightBrown),
+      );
+    });
   }
 }

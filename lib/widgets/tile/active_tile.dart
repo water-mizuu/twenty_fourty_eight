@@ -1,20 +1,21 @@
 import "package:flutter/material.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
+import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/widgets/tile/game_tile.dart";
 
 class ActiveTile extends StatelessWidget with GameTile {
   const ActiveTile({
     required this.animatedValue,
     required this.scale,
-    required this.tileSize,
     super.key,
   });
+  const ActiveTile.dummy({
+    required this.animatedValue,
+    super.key,
+  }) : scale = 1.0;
 
   final int animatedValue;
   final double scale;
-
-  @override
-  final double tileSize;
 
   @override
   Widget build(BuildContext context) {
@@ -22,25 +23,31 @@ class ActiveTile extends StatelessWidget with GameTile {
 
     return Transform.scale(
       scale: scale,
-      child: Container(
-        margin: margin,
-        decoration: roundRadius.copyWith(color: backgroundColor),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                "$animatedValue",
-                style: TextStyle(
-                  color: foregroundColor,
-                  fontSize: tileSize * 4 / 9,
-                  fontWeight: FontWeight.w800,
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          double parentHeight = constraints.constrainHeight();
+
+          return Container(
+            margin: EdgeInsets.all(parentHeight * tileMarginRatio),
+            decoration: roundRadius.copyWith(color: backgroundColor),
+            child: Center(
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: parentHeight * textMarginRatio),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    "$animatedValue",
+                    style: TextStyle(
+                      color: foregroundColor,
+                      fontSize: parentHeight * 45.percent,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
