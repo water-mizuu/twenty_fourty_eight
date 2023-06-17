@@ -17,7 +17,7 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> with SingleTickerProviderStateMixin {
-  static const double boardPadding = 2;
+  // static const double boardPadding = 2;
 
   late final GameState state;
 
@@ -40,21 +40,20 @@ class _GameState extends State<Game> with SingleTickerProviderStateMixin {
     return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
       var Size(:double width, :double height) = constraints.constrain(Size.infinite);
 
-      int determinant = math.max(gridY, gridX);
+      int determinant = math.max(state.gridY, state.gridX);
 
       // Yes, i used the value of [tileSize].
+      //
       // x                         = min width, height - (x / determinant - boardPadding * 0.5)
       // x                         = height - x / determinant + boardPadding * 0.5
       // x + x / determinant       = height + boardPadding * 0.5
       // (1 + 1 / determinant) * x = height + boardPadding * 0.5
       // x                         = (height + boardPadding * 0.5) / (1 + 1 / determinant)
-      double constraint = math.min(width, (height + boardPadding * 0.5) / (1 + 1 / determinant) * 0.98325);
+      double constraint = math.min(width, height / (1 + 1 / determinant));
 
-      double divisionSize = constraint / determinant;
-      double gridSizeY = divisionSize * gridY;
-      double gridSizeX = divisionSize * gridX;
-
-      double tileSize = divisionSize - boardPadding * 0.5;
+      double tileSize = constraint / determinant;
+      double gridSizeY = tileSize * state.gridY;
+      double gridSizeX = tileSize * state.gridX;
 
       return Provider<GameState>.value(
         value: state,
@@ -64,21 +63,15 @@ class _GameState extends State<Game> with SingleTickerProviderStateMixin {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Container(
-                  width: gridSizeX,
+                SizedBox(
                   height: tileSize,
-                  margin: const EdgeInsets.only(left: 5.0, right: 5.0),
+                  width: gridSizeX,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      SizedBox(
-                        height: tileSize,
-                        width: tileSize,
-                        child: ActiveTile(
-                          tileSize: tileSize,
-                          scale: 1.0,
-                          animatedValue: 2048,
-                        ),
+                      const AspectRatio(
+                        aspectRatio: 1,
+                        child: ActiveTile.dummy(animatedValue: 2048),
                       ),
                       Expanded(
                         child: Scoreboard(width: tileSize),
@@ -87,22 +80,18 @@ class _GameState extends State<Game> with SingleTickerProviderStateMixin {
                   ),
                 ),
                 SizedBox(
-                  height: gridSizeY + 2.0 * boardPadding,
-                  width: gridSizeX + 2.0 * boardPadding,
+                  height: gridSizeY,
+                  width: gridSizeX,
                   child: StreamBuilder<void>(
                     stream: state.updateStream,
                     builder: (BuildContext context, _) {
                       return Stack(
                         children: <Widget>[
-                          Board(
-                            boardPadding: boardPadding,
-                            divisionSize: divisionSize,
-                            tileSize: tileSize,
-                          ),
+                          Board(tileSize: tileSize),
                           if (!state.canSwipeAnywhere())
                             Positioned(
-                              height: gridSizeY + 2.1 * boardPadding,
-                              width: gridSizeX + 2.1 * boardPadding,
+                              height: gridSizeY + 4,
+                              width: gridSizeX + 4,
                               child: const GameOver(),
                             ),
                         ],
