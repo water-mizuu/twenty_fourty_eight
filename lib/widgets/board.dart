@@ -7,23 +7,15 @@ import "package:twenty_fourty_eight/widgets/tile/active_tile.dart";
 import "package:twenty_fourty_eight/widgets/tile/background_tile.dart";
 
 class Board extends StatelessWidget {
-  const Board({
-    required this.divisionSize,
-    required this.tileSize,
-    required this.boardPadding,
-    super.key,
-  });
+  const Board({required this.tileSize, super.key});
 
-  final double divisionSize;
   final double tileSize;
-  final double boardPadding;
 
   @override
   Widget build(BuildContext context) {
     GameState state = context.read<GameState>();
 
-    return Container(
-      padding: EdgeInsets.all(boardPadding),
+    return DecoratedBox(
       decoration: roundRadius.copyWith(color: darkBrown),
       child: KeyboardListener(
         focusNode: FocusNode(),
@@ -35,14 +27,15 @@ class Board extends StatelessWidget {
             children: <Widget>[
               for (var AnimatedTile(:int y, :int x) in state.renderTiles) //
                 Positioned(
-                  top: y * divisionSize,
-                  left: x * divisionSize,
-                  width: divisionSize,
-                  height: divisionSize,
-                  child: BackgroundTile(
-                    y: y,
-                    x: x,
-                    tileSize: tileSize,
+                  top: y * tileSize,
+                  left: x * tileSize,
+                  width: tileSize,
+                  height: tileSize,
+                  child: Center(
+                    child: BackgroundTile(
+                      y: y,
+                      x: x,
+                    ),
                   ),
                 ),
               AnimatedBuilder(
@@ -58,14 +51,15 @@ class Board extends StatelessWidget {
                           ) in state.renderTiles)
                         if (animatedValue != 0) //
                           Positioned(
-                            left: animatedX * divisionSize,
-                            top: animatedY * divisionSize,
-                            height: divisionSize,
-                            width: divisionSize,
-                            child: ActiveTile(
-                              scale: scale,
-                              animatedValue: animatedValue,
-                              tileSize: tileSize,
+                            left: animatedX * tileSize,
+                            top: animatedY * tileSize,
+                            height: tileSize,
+                            width: tileSize,
+                            child: Center(
+                              child: ActiveTile(
+                                scale: scale,
+                                animatedValue: animatedValue,
+                              ),
                             ),
                           ),
                     ],
