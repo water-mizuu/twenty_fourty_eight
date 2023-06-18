@@ -11,9 +11,9 @@ import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/shared/typedef.dart";
 
 class GameState {
-  static const int defaultGridY = 3;
-  static const int defaultGridX = 5;
-  static const Duration animationDuration = Duration(milliseconds: 250);
+  static const int defaultGridY = 4;
+  static const int defaultGridX = 4;
+  static const Duration animationDuration = Duration(milliseconds: 325);
 
   late final AnimationController controller;
 
