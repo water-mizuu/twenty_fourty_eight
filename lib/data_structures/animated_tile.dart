@@ -68,8 +68,10 @@ class AnimatedTile {
       TweenSequenceItem<int>(tween: ConstantTween<int>(value), weight: 0.01),
       TweenSequenceItem<int>(tween: ConstantTween<int>(newValue), weight: 0.99),
     ]);
-    Animation<double> animation =
-        CurvedAnimation(parent: parent, curve: const Interval(split, 1, curve: animationCurve));
+    Animation<double> animation = CurvedAnimation(
+      parent: parent,
+      curve: const Interval(split, 1, curve: animationCurve),
+    );
     animatedValue = animatable.animate(animation);
   }
 }
