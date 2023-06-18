@@ -2,7 +2,7 @@ import "package:flutter/material.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/widgets/tile/game_tile.dart";
 
-class BackgroundTile extends StatelessWidget with GameTile {
+class BackgroundTile extends StatelessWidget {
   const BackgroundTile({
     required this.y,
     required this.x,
@@ -16,7 +16,7 @@ class BackgroundTile extends StatelessWidget with GameTile {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
       return Container(
-        margin: EdgeInsets.all(constraints.constrainHeight() * tileMarginRatio),
+        margin: EdgeInsets.all(constraints.constrainHeight() * GameTile.tileMarginRatio),
         decoration: roundRadius.copyWith(color: lightBrown),
       );
     });

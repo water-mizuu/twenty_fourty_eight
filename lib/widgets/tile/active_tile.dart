@@ -3,7 +3,7 @@ import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/widgets/tile/game_tile.dart";
 
-class ActiveTile extends StatelessWidget with GameTile {
+class ActiveTile extends StatelessWidget  {
   const ActiveTile({
     required this.animatedValue,
     required this.scale,
@@ -28,11 +28,11 @@ class ActiveTile extends StatelessWidget with GameTile {
           double parentHeight = constraints.constrainHeight();
 
           return Container(
-            margin: EdgeInsets.all(parentHeight * tileMarginRatio),
+            margin: EdgeInsets.all(parentHeight * GameTile.tileMarginRatio),
             decoration: roundRadius.copyWith(color: backgroundColor),
             child: Center(
               child: Container(
-                margin: EdgeInsets.symmetric(horizontal: parentHeight * textMarginRatio),
+                margin: EdgeInsets.symmetric(horizontal: parentHeight * GameTile.textMarginRatio),
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(

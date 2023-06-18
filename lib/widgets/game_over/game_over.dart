@@ -15,6 +15,8 @@ class GameOver extends StatefulWidget {
 class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin {
   late final AnimationController controller;
 
+  late Animation<double> blurRadius;
+
   late Animation<double> backgroundOpacity;
 
   late Animation<double> textMoveDown;
@@ -27,6 +29,12 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
     super.initState();
 
     controller = AnimationController(vsync: this, duration: 1000.milliseconds);
+
+    if (const Interval(0.00, 1.00, curve: Curves.ease) case Curve curve) {
+      blurRadius = CurvedAnimation(parent: controller, curve: curve) //
+          .drive(Tween<double>(begin: 0.0, end: 4.0));
+    }
+
     if (const Interval(0.00, 0.50, curve: Curves.ease) case Curve curve) {
       backgroundOpacity = CurvedAnimation(parent: controller, curve: curve) //
           .drive(Tween<double>(begin: 0.0, end: 1.0));
@@ -60,6 +68,7 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
       animation: controller,
       builder: (BuildContext context, Widget? child) {
         var Animation<double>(value: double backgroundOpacity) = this.backgroundOpacity;
+        var Animation<double>(value: double blurRadius) = this.blurRadius;
         var Animation<double>(value: double textMoveDown) = this.textMoveDown;
         var Animation<int>(value: int textOpacity) = this.textOpacity;
         var Animation<double>(value: double buttonOpacity) = this.buttonOpacity;
@@ -67,9 +76,9 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
         return Opacity(
           opacity: backgroundOpacity,
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
+            filter: ImageFilter.blur(sigmaX: blurRadius, sigmaY: blurRadius),
             child: DecoratedBox(
-              decoration: roundRadius.copyWith(color: const Color.fromARGB(128, 225, 225, 225)),
+              decoration: roundRadius.copyWith(color: const Color.fromARGB(155, 225, 225, 225)),
               child: GameOverScreen(
                 textMoveDown: textMoveDown,
                 textOpacity: textOpacity,

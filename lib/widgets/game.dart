@@ -49,25 +49,35 @@ class _GameState extends State<Game> with SingleTickerProviderStateMixin {
       double gridSizeY = tileSize * gridY;
       double gridSizeX = tileSize * gridX;
 
-      return Provider<GameState>.value(
-        value: state,
-        child: Scaffold(
-          backgroundColor: tan,
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                SizedBox(
-                  height: tileSize,
-                  width: gridSizeX,
-                  child: TopRow(tileSize: tileSize),
+      return KeyboardListener(
+        focusNode: FocusNode(),
+        autofocus: true,
+        onKeyEvent: state.keyEventListener,
+        child: GestureDetector(
+          onVerticalDragEnd: state.verticalDragListener,
+          onHorizontalDragEnd: state.horizontalDragListener,
+          child: Provider<GameState>.value(
+            updateShouldNotify: (_, __) => false,
+            value: state,
+            child: Scaffold(
+              backgroundColor: tan,
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    SizedBox(
+                      height: tileSize,
+                      width: gridSizeX,
+                      child: TopRow(tileSize: tileSize),
+                    ),
+                    SizedBox(
+                      height: gridSizeY,
+                      width: gridSizeX,
+                      child: BoardArea(tileSize: tileSize),
+                    ),
+                  ],
                 ),
-                SizedBox(
-                  height: gridSizeY,
-                  width: gridSizeX,
-                  child: BoardArea(tileSize: tileSize),
-                ),
-              ],
+              ),
             ),
           ),
         ),

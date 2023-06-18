@@ -28,7 +28,7 @@ class _AddedScorePopupState extends State<AddedScorePopup> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<int>(
-      stream: context.watch<GameState>().addedScoreStream,
+      stream: context.select((GameState state) => state.addedScoreStream),
       builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
         switch (snapshot.data) {
           case int value:

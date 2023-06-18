@@ -30,7 +30,7 @@ class CurrentScore extends StatelessWidget {
               style: displayTextStyle.copyWith(color: displayText),
             ),
             StreamBuilder<int>(
-              stream: context.watch<GameState>().scoreStream,
+              stream: context.select((GameState state) => state.scoreStream),
               initialData: 0,
               builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
                 return Text(

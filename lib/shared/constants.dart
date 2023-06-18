@@ -11,3 +11,5 @@ const Color displayText = Color.fromARGB(255, 238, 228, 218);
 
 const BoxDecoration roundRadius = BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(8)));
 final math.Random random = math.Random();
+
+const bool isDebug = true;

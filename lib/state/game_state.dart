@@ -3,6 +3,8 @@ import "dart:collection";
 import "dart:math" as math;
 
 import "package:flutter/animation.dart";
+import "package:flutter/gestures.dart";
+import "package:flutter/services.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/shared/extensions.dart";
@@ -84,6 +86,67 @@ class GameState {
     _alert();
   }
 
+  void keyEventListener(KeyEvent event) {
+    print(event);
+    if (!_actionIsUnlocked) {
+      return;
+    }
+
+    switch (event.logicalKey) {
+      /// UP
+      case LogicalKeyboardKey.arrowUp when canSwipeUp():
+        swipeUp();
+
+      /// DOWN
+      case LogicalKeyboardKey.arrowDown when canSwipeDown():
+        swipeDown();
+
+      /// LEFT
+      case LogicalKeyboardKey.arrowLeft when canSwipeLeft():
+        swipeLeft();
+
+      /// RIGHT
+      case LogicalKeyboardKey.arrowRight when canSwipeRight():
+        swipeRight();
+
+      /// DEBUGS
+      case LogicalKeyboardKey.numpad0 when isDebug:
+        _fail();
+    }
+  }
+
+  void verticalDragListener(DragEndDetails details) {
+    if (!_actionIsUnlocked) {
+      return;
+    }
+
+    switch (details.velocity.pixelsPerSecond.dy) {
+      /// Swipe Up
+      case < -200 when canSwipeUp():
+        swipeUp();
+
+      /// Swipe Down
+      case > 200 when canSwipeDown():
+        swipeDown();
+    }
+  }
+
+  void horizontalDragListener(DragEndDetails details) {
+    if (!_actionIsUnlocked) {
+      return;
+    }
+
+    switch (details.velocity.pixelsPerSecond.dx) {
+      /// Swipe Left
+      case < -200 when canSwipeLeft():
+        swipeLeft();
+
+      /// Swipe Right
+      case > 200 when canSwipeRight():
+        swipeRight();
+    }
+  }
+
   bool canSwipeLeft() => _grid.any(_canSwipe);
   bool canSwipeRight() => _grid.reversedRows.any(_canSwipe);
   bool canSwipeUp() => _grid.columns.any(_canSwipe);
@@ -95,27 +158,36 @@ class GameState {
   void swipeLeft() => _swipe(() => _grid.forEach(_mergeTiles));
   void swipeRight() => _swipe(() => _grid.reversedRows.forEach(_mergeTiles));
 
-  static int _randomTileNumber() => switch (random.nextDouble()) {
+  static int randomTileNumber() => switch (random.nextDouble()) {
         <= 0.125 => 4,
         _ => 2,
       };
 
-  static int _powerOfTwo(int gridY, int y, int x) => math.pow(2, y * gridY + x + 1).floor();
+  static int powerOfTwo(int gridY, int y, int x) => math.pow(2, y * gridY + x + 1).floor();
 
   void _startGame() {
     score = 0;
 
+    _actionIsUnlocked = true;
     List<AnimatedTile> shuffledTiles = flattenedGrid.toList()..shuffle();
-    // for (var AnimatedTile(:int y, :int x) in shuffledTiles.take(2)) {
-    //   _grid[y][x].value = _randomTileNumber();
-    // }
-    for (var AnimatedTile(:int y, :int x) in shuffledTiles.skip(1)) {
-      _grid[y][x].value = _powerOfTwo(gridY, y, x);
+    for (var AnimatedTile(:int y, :int x) in shuffledTiles.take(2)) {
+      _grid[y][x].value = randomTileNumber();
     }
+    // for (var AnimatedTile(:int y, :int x) in shuffledTiles.skip(1)) {
+    //   _grid[y][x].value = powerOfTwo(gridY, y, x);
+    // }
 
     for (AnimatedTile tile in flattenedGrid) {
       tile.resetAnimations();
     }
+  }
+
+  void _fail() {
+    for (var AnimatedTile(:int y, :int x) in flattenedGrid) {
+      _grid[y][x].value = powerOfTwo(gridY, y, x);
+    }
+
+    _alert();
   }
 
   void _addNewTile() {
@@ -129,7 +201,7 @@ class GameState {
     }
 
     var AnimatedTile(:int y, :int x) = empty.first;
-    int chosen = _randomTileNumber();
+    int chosen = randomTileNumber();
     _grid[y][x].value = chosen;
 
     _toAdd.add(AnimatedTile((y: y, x: x), chosen)..appear(controller));
