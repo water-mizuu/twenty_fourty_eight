@@ -28,20 +28,20 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
 
     controller = AnimationController(vsync: this, duration: 1000.milliseconds);
     if (const Interval(0.00, 0.50, curve: Curves.ease) case Curve curve) {
-      backgroundOpacity = Tween<double>(begin: 0.0, end: 1.0) //
-          .animate(CurvedAnimation(parent: controller, curve: curve));
+      backgroundOpacity = CurvedAnimation(parent: controller, curve: curve) //
+          .drive(Tween<double>(begin: 0.0, end: 1.0));
     }
 
     if (const Interval(0.50, 0.75, curve: Curves.ease) case Curve curve) {
-      textMoveDown = Tween<double>(begin: 0.95, end: 1.00) //
-          .animate(CurvedAnimation(parent: controller, curve: curve));
-      textOpacity = IntTween(begin: 0, end: 255) //
-          .animate(CurvedAnimation(parent: controller, curve: curve));
+      textMoveDown = CurvedAnimation(parent: controller, curve: curve) //
+          .drive(Tween<double>(begin: 0.95, end: 1.00));
+      textOpacity = CurvedAnimation(parent: controller, curve: curve) //
+          .drive(IntTween(begin: 0, end: 255));
     }
 
     if (const Interval(0.75, 1.00, curve: Curves.ease) case Curve curve) {
-      buttonOpacity = Tween<double>(begin: 0.0, end: 1.0) //
-          .animate(CurvedAnimation(parent: controller, curve: curve));
+      buttonOpacity = CurvedAnimation(parent: controller, curve: curve) //
+          .drive(Tween<double>(begin: 0.0, end: 1.0));
     }
 
     controller.forward();

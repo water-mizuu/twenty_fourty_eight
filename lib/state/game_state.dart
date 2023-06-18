@@ -1,5 +1,6 @@
 import "dart:async";
 import "dart:collection";
+import "dart:math" as math;
 
 import "package:flutter/animation.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
@@ -94,19 +95,22 @@ class GameState {
   void swipeLeft() => _swipe(() => _grid.forEach(_mergeTiles));
   void swipeRight() => _swipe(() => _grid.reversedRows.forEach(_mergeTiles));
 
-  static int _randomTileNumber() {
-    return switch (random.nextDouble()) {
-      <= 0.25 => 4,
-      _ => 2,
-    };
-  }
+  static int _randomTileNumber() => switch (random.nextDouble()) {
+        <= 0.125 => 4,
+        _ => 2,
+      };
+
+  static int _powerOfTwo(int gridY, int y, int x) => math.pow(2, y * gridY + x + 1).floor();
 
   void _startGame() {
     score = 0;
 
-    List<AnimatedTile> shuffledTiles = <AnimatedTile>[...flattenedGrid]..shuffle();
-    for (var AnimatedTile(:int y, :int x) in shuffledTiles.take(2)) {
-      _grid[y][x].value = _randomTileNumber();
+    List<AnimatedTile> shuffledTiles = flattenedGrid.toList()..shuffle();
+    // for (var AnimatedTile(:int y, :int x) in shuffledTiles.take(2)) {
+    //   _grid[y][x].value = _randomTileNumber();
+    // }
+    for (var AnimatedTile(:int y, :int x) in shuffledTiles.skip(1)) {
+      _grid[y][x].value = _powerOfTwo(gridY, y, x);
     }
 
     for (AnimatedTile tile in flattenedGrid) {
