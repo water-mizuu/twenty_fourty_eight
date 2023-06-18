@@ -23,7 +23,7 @@ class GameOverScreen extends StatelessWidget {
         alignment: Alignment.topCenter,
         children: <Widget>[
           Positioned(
-            top: ((height - 128) / 2 ) * textMoveDown,
+            top: ((height - 128) / 2) * textMoveDown,
             child: GameOverMessage(textOpacity: textOpacity),
           ),
           Positioned(
