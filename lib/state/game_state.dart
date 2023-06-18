@@ -1,5 +1,6 @@
 import "dart:async";
 import "dart:collection";
+import "dart:io";
 import "dart:math" as math;
 
 import "package:flutter/animation.dart";
@@ -87,7 +88,6 @@ class GameState {
   }
 
   void keyEventListener(KeyEvent event) {
-    print(event);
     if (!_actionIsUnlocked) {
       return;
     }
@@ -112,6 +112,10 @@ class GameState {
       /// DEBUGS
       case LogicalKeyboardKey.numpad0 when isDebug:
         _fail();
+
+      /// DEBUGS
+      case LogicalKeyboardKey.numpad1 when isDebug:
+        stdout.writeln(collectionEqual(_grid, parseRunLengthEncoding(runLengthEncoding)));
     }
   }
 
@@ -157,6 +161,61 @@ class GameState {
   void swipeDown() => _swipe(() => _grid.columns.reversedRows.forEach(_mergeTiles));
   void swipeLeft() => _swipe(() => _grid.forEach(_mergeTiles));
   void swipeRight() => _swipe(() => _grid.reversedRows.forEach(_mergeTiles));
+
+  String get runLengthEncoding {
+    StringBuffer buffer = StringBuffer("$gridY;$gridX::");
+
+    List<AnimatedTile> tiles = flattenedGrid.toList();
+    for (int i = 0; i < tiles.length; ++i) {
+      int count = 1;
+      while (i + 1 < tiles.length && tiles[i].value == tiles[i + 1].value) {
+        ++count;
+        ++i;
+      }
+      buffer.write("${tiles[i].value}:$count");
+      if (i < tiles.length - 1) {
+        buffer.write(";");
+      }
+    }
+
+    return buffer.toString();
+  }
+
+  static List2<AnimatedTile> parseRunLengthEncoding(String encoding) {
+    var [String dimensionEncoding, String bodyEncoding] = encoding.split("::");
+    var [int gridY, int gridX] = dimensionEncoding.split(";").map(int.parse).toList();
+
+    List2<AnimatedTile> grid = <List<AnimatedTile>>[];
+    List<String> splitEncoding = bodyEncoding.split(";");
+
+    int i = 0;
+
+    List<AnimatedTile> buffer = <AnimatedTile>[];
+    for (var [int value, int count] in splitEncoding.map((String v) => v.split(":").map(int.parse).toList())) {
+      for (int j = 0; j < count; ++j, ++i) {
+        var (int y, int x) = (i ~/ gridY, i % gridX);
+
+        buffer.add(AnimatedTile((y: y, x: x), value));
+        if (x == gridX - 1) {
+          grid.add(buffer);
+          buffer = <AnimatedTile>[];
+        }
+      }
+    }
+
+    return grid;
+  }
+
+  static bool collectionEqual(List2<AnimatedTile> left, List2<AnimatedTile> right) {
+    for (int y = 0; y < left.length && y < right.length; ++y) {
+      for (int x = 0; x < left[y].length && x < right[y].length; ++x) {
+        if (left[y][x].value != right[y][x].value) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
   static int randomTileNumber() => switch (random.nextDouble()) {
         <= 0.125 => 4,
