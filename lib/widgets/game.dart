@@ -1,13 +1,11 @@
-import "dart:math" as math;
+import "dart:math";
 
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
-import "package:twenty_fourty_eight/widgets/board.dart";
-import "package:twenty_fourty_eight/widgets/game_over/game_over.dart";
-import "package:twenty_fourty_eight/widgets/scoreboard/scoreboard.dart";
-import "package:twenty_fourty_eight/widgets/tile/active_tile.dart";
+import "package:twenty_fourty_eight/widgets/board/board_area.dart";
+import "package:twenty_fourty_eight/widgets/main/top_row.dart";
 
 class Game extends StatefulWidget {
   const Game({super.key});
@@ -38,22 +36,18 @@ class _GameState extends State<Game> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
+      var GameState(:int gridY, :int gridX) = state;
       var Size(:double width, :double height) = constraints.constrain(Size.infinite);
 
-      int determinant = math.max(state.gridY, state.gridX);
-
-      // Yes, i used the value of [tileSize].
-      //
-      // x                         = min width, height - (x / determinant - boardPadding * 0.5)
-      // x                         = height - x / determinant + boardPadding * 0.5
-      // x + x / determinant       = height + boardPadding * 0.5
-      // (1 + 1 / determinant) * x = height + boardPadding * 0.5
-      // x                         = (height + boardPadding * 0.5) / (1 + 1 / determinant)
-      double constraint = math.min(width, height / (1 + 1 / determinant));
-
-      double tileSize = constraint / determinant;
-      double gridSizeY = tileSize * state.gridY;
-      double gridSizeX = tileSize * state.gridX;
+      /// ts = min w/gx, (h - ts)/gy
+      /// ts = (h - ts)/gy
+      /// ts = h/gy - ts/gy
+      /// ts + ts/gy = h/gy
+      /// (1 + 1/gy)ts = h/gy
+      /// ts = (h/gy) / (1 + 1/gy)
+      double tileSize = min(width / gridX, (height / gridY) / (1 + 1 / gridY));
+      double gridSizeY = tileSize * gridY;
+      double gridSizeX = tileSize * gridX;
 
       return Provider<GameState>.value(
         value: state,
@@ -66,38 +60,12 @@ class _GameState extends State<Game> with SingleTickerProviderStateMixin {
                 SizedBox(
                   height: tileSize,
                   width: gridSizeX,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      const AspectRatio(
-                        aspectRatio: 1,
-                        child: ActiveTile.dummy(animatedValue: 2048),
-                      ),
-                      Expanded(
-                        child: Scoreboard(width: tileSize),
-                      ),
-                    ],
-                  ),
+                  child: TopRow(tileSize: tileSize),
                 ),
                 SizedBox(
                   height: gridSizeY,
                   width: gridSizeX,
-                  child: StreamBuilder<void>(
-                    stream: state.updateStream,
-                    builder: (BuildContext context, _) {
-                      return Stack(
-                        children: <Widget>[
-                          Board(tileSize: tileSize),
-                          if (!state.canSwipeAnywhere())
-                            Positioned(
-                              height: gridSizeY + 4,
-                              width: gridSizeX + 4,
-                              child: const GameOver(),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
+                  child: BoardArea(tileSize: tileSize),
                 ),
               ],
             ),
