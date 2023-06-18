@@ -11,23 +11,17 @@ class Scoreboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+    return Stack(
       children: <Widget>[
-        const Expanded(child: SizedBox()),
-        Stack(
-          children: <Widget>[
-            SizedBox(
-              width: width,
-              child: CurrentScore(width: width, aspectRatio: aspectRatio),
-            ),
-            SizedBox(
-              width: width,
-              height: width * aspectRatio,
-              child: const AddedScorePopup(),
-            )
-          ],
+        SizedBox(
+          width: width,
+          child: CurrentScore(width: width, aspectRatio: aspectRatio),
         ),
+        SizedBox(
+          width: width,
+          height: width * aspectRatio,
+          child: const AddedScorePopup(),
+        )
       ],
     );
   }

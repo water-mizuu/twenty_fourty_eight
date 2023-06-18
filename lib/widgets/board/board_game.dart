@@ -3,11 +3,11 @@ import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
+import "package:twenty_fourty_eight/widgets/board/board_background.dart";
 import "package:twenty_fourty_eight/widgets/tile/active_tile.dart";
-import "package:twenty_fourty_eight/widgets/tile/background_tile.dart";
 
-class Board extends StatelessWidget {
-  const Board({required this.tileSize, super.key});
+class BoardGame extends StatelessWidget {
+  const BoardGame({required this.tileSize, super.key});
 
   final double tileSize;
 
@@ -25,19 +25,7 @@ class Board extends StatelessWidget {
           onHorizontalDragEnd: (DragEndDetails details) => horizontalDragListener(state, details),
           child: Stack(
             children: <Widget>[
-              for (var AnimatedTile(:int y, :int x) in state.renderTiles) //
-                Positioned(
-                  top: y * tileSize,
-                  left: x * tileSize,
-                  width: tileSize,
-                  height: tileSize,
-                  child: Center(
-                    child: BackgroundTile(
-                      y: y,
-                      x: x,
-                    ),
-                  ),
-                ),
+              BoardBackground(state: state, tileSize: tileSize),
               AnimatedBuilder(
                 animation: state.controller,
                 builder: (BuildContext context, _) {
