@@ -1,9 +1,9 @@
 import "package:flutter/material.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/shared/extensions.dart";
-import "package:twenty_fourty_eight/widgets/tile/game_tile.dart";
+import "package:twenty_fourty_eight/widgets/board/tile/game_tile.dart";
 
-class ActiveTile extends StatelessWidget  {
+class ActiveTile extends StatelessWidget {
   const ActiveTile({
     required this.animatedValue,
     required this.scale,

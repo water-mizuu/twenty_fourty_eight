@@ -1,0 +1,21 @@
+import "package:flutter/material.dart";
+import "package:provider/provider.dart";
+import "package:twenty_fourty_eight/state/game_state.dart";
+import "package:twenty_fourty_eight/widgets/main/game.dart";
+
+class Application extends StatelessWidget {
+  const Application({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: "2048",
+      theme: ThemeData(useMaterial3: true),
+      home: Provider<GameState>.value(
+        updateShouldNotify: (_, __) => false,
+        value: GameState()..reset(),
+        child: const Game(),
+      ),
+    );
+  }
+}

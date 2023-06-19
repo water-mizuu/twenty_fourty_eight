@@ -1,8 +1,10 @@
 import "dart:ui";
 
 import "package:flutter/material.dart";
+import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/shared/extensions.dart";
+import "package:twenty_fourty_eight/state/game_state.dart";
 import "package:twenty_fourty_eight/widgets/game_over/game_over_screen.dart";
 
 class GameOver extends StatefulWidget {
@@ -64,30 +66,41 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (BuildContext context, Widget? child) {
-        var Animation<double>(value: double backgroundOpacity) = this.backgroundOpacity;
-        var Animation<double>(value: double blurRadius) = this.blurRadius;
-        var Animation<double>(value: double textMoveDown) = this.textMoveDown;
-        var Animation<int>(value: int textOpacity) = this.textOpacity;
-        var Animation<double>(value: double buttonOpacity) = this.buttonOpacity;
+    return StreamBuilder<void>(
+        stream: context.select((GameState value) => value.updateStream),
+        builder: (BuildContext context, _) {
+          if (context.read<GameState>().canSwipeAnywhere()) {
+            return const SizedBox();
+          } else {
+            controller.reset();
+            controller.forward();
 
-        return Opacity(
-          opacity: backgroundOpacity,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: blurRadius, sigmaY: blurRadius),
-            child: DecoratedBox(
-              decoration: roundRadius.copyWith(color: const Color.fromARGB(155, 225, 225, 225)),
-              child: GameOverScreen(
-                textMoveDown: textMoveDown,
-                textOpacity: textOpacity,
-                buttonOpacity: buttonOpacity,
-              ),
-            ),
-          ),
-        );
-      },
-    );
+            return AnimatedBuilder(
+              animation: controller,
+              builder: (BuildContext context, Widget? child) {
+                var Animation<double>(value: double backgroundOpacity) = this.backgroundOpacity;
+                var Animation<double>(value: double blurRadius) = this.blurRadius;
+                var Animation<double>(value: double textMoveDown) = this.textMoveDown;
+                var Animation<int>(value: int textOpacity) = this.textOpacity;
+                var Animation<double>(value: double buttonOpacity) = this.buttonOpacity;
+
+                return Opacity(
+                  opacity: backgroundOpacity,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: blurRadius, sigmaY: blurRadius),
+                    child: DecoratedBox(
+                      decoration: roundRadius.copyWith(color: const Color.fromARGB(64, 192, 192, 192)),
+                      child: GameOverScreen(
+                        textMoveDown: textMoveDown,
+                        textOpacity: textOpacity,
+                        buttonOpacity: buttonOpacity,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }
+        });
   }
 }

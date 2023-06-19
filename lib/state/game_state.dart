@@ -14,7 +14,7 @@ import "package:twenty_fourty_eight/shared/typedef.dart";
 class GameState {
   static const int defaultGridY = 4;
   static const int defaultGridX = 4;
-  static const Duration animationDuration = Duration(milliseconds: 325);
+  static const Duration animationDuration = Duration(milliseconds: 1000);
 
   late final AnimationController controller;
 
@@ -31,13 +31,12 @@ class GameState {
   bool _actionIsUnlocked;
   int _scoreBuffer;
 
-  GameState(TickerProvider parent, [this.gridY = defaultGridY, this.gridX = defaultGridX])
-      : controller = AnimationController(vsync: parent, duration: animationDuration),
-        score = 0,
+  GameState([this.gridY = defaultGridY, this.gridX = defaultGridX])
+      : score = 0,
         _actionIsUnlocked = true,
-        _updateController = StreamController<void>(),
-        _addedScoreController = StreamController<int>(),
-        _scoreController = StreamController<int>(),
+        _updateController = StreamController<void>.broadcast(),
+        _addedScoreController = StreamController<int>.broadcast(),
+        _scoreController = StreamController<int>.broadcast(),
         _toAdd = Queue<AnimatedTile>(),
         _grid = <List<AnimatedTile>>[
           for (int y = 0; y < gridY; ++y)
@@ -45,23 +44,7 @@ class GameState {
               for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
             ],
         ],
-        _scoreBuffer = 0 {
-    controller.addStatusListener((AnimationStatus status) {
-      if (status case AnimationStatus.completed) {
-        while (_toAdd.isNotEmpty) {
-          var AnimatedTile(:int y, :int x, :int value) = _toAdd.removeFirst();
-
-          _grid[y][x].value = value;
-        }
-        for (AnimatedTile tile in flattenedGrid) {
-          tile.resetAnimations();
-        }
-
-        controller.reset();
-        _actionIsUnlocked = true;
-      }
-    });
-  }
+        _scoreBuffer = 0;
 
   Iterable<AnimatedTile> get flattenedGrid => _grid.expand((List<AnimatedTile> r) => r);
   Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_toAdd);
@@ -87,68 +70,87 @@ class GameState {
     _alert();
   }
 
-  void keyEventListener(KeyEvent event) {
-    if (!_actionIsUnlocked) {
-      return;
-    }
+  void Function(KeyEvent) get keyEventListener => (KeyEvent event) {
+        if (!_actionIsUnlocked) {
+          return;
+        }
 
-    switch (event.logicalKey) {
-      /// UP
-      case LogicalKeyboardKey.arrowUp when canSwipeUp():
-        swipeUp();
+        switch (event.logicalKey) {
+          /// UP
+          case LogicalKeyboardKey.arrowUp when canSwipeUp():
+            swipeUp();
 
-      /// DOWN
-      case LogicalKeyboardKey.arrowDown when canSwipeDown():
-        swipeDown();
+          /// DOWN
+          case LogicalKeyboardKey.arrowDown when canSwipeDown():
+            swipeDown();
 
-      /// LEFT
-      case LogicalKeyboardKey.arrowLeft when canSwipeLeft():
-        swipeLeft();
+          /// LEFT
+          case LogicalKeyboardKey.arrowLeft when canSwipeLeft():
+            swipeLeft();
 
-      /// RIGHT
-      case LogicalKeyboardKey.arrowRight when canSwipeRight():
-        swipeRight();
+          /// RIGHT
+          case LogicalKeyboardKey.arrowRight when canSwipeRight():
+            swipeRight();
 
-      /// DEBUGS
-      case LogicalKeyboardKey.numpad0 when isDebug:
-        _fail();
+          /// DEBUGS
+          case LogicalKeyboardKey.numpad0 when isDebug:
+            _fail();
 
-      /// DEBUGS
-      case LogicalKeyboardKey.numpad1 when isDebug:
-        stdout.writeln(collectionEqual(_grid, parseRunLengthEncoding(runLengthEncoding)));
-    }
-  }
+          /// DEBUGS
+          case LogicalKeyboardKey.numpad1 when isDebug:
+            stdout.writeln(collectionEqual(_grid, parseRunLengthEncoding(runLengthEncoding)));
+        }
+      };
 
-  void verticalDragListener(DragEndDetails details) {
-    if (!_actionIsUnlocked) {
-      return;
-    }
+  void Function(DragEndDetails) get verticalDragListener => (DragEndDetails details) {
+        if (!_actionIsUnlocked) {
+          return;
+        }
 
-    switch (details.velocity.pixelsPerSecond.dy) {
-      /// Swipe Up
-      case < -200 when canSwipeUp():
-        swipeUp();
+        switch (details.velocity.pixelsPerSecond.dy) {
+          /// Swipe Up
+          case < -200 when canSwipeUp():
+            swipeUp();
 
-      /// Swipe Down
-      case > 200 when canSwipeDown():
-        swipeDown();
-    }
-  }
+          /// Swipe Down
+          case > 200 when canSwipeDown():
+            swipeDown();
+        }
+      };
 
-  void horizontalDragListener(DragEndDetails details) {
-    if (!_actionIsUnlocked) {
-      return;
-    }
+  void Function(DragEndDetails) get horizontalDragListener => (DragEndDetails details) {
+        if (!_actionIsUnlocked) {
+          return;
+        }
 
-    switch (details.velocity.pixelsPerSecond.dx) {
-      /// Swipe Left
-      case < -200 when canSwipeLeft():
-        swipeLeft();
+        switch (details.velocity.pixelsPerSecond.dx) {
+          /// Swipe Left
+          case < -200 when canSwipeLeft():
+            swipeLeft();
 
-      /// Swipe Right
-      case > 200 when canSwipeRight():
-        swipeRight();
-    }
+          /// Swipe Right
+          case > 200 when canSwipeRight():
+            swipeRight();
+        }
+      };
+
+  void registerAnimationController(TickerProvider provider) {
+    controller = AnimationController(vsync: provider, duration: animationDuration)
+      ..addStatusListener((AnimationStatus status) {
+        if (status case AnimationStatus.completed) {
+          while (_toAdd.isNotEmpty) {
+            var AnimatedTile(:int y, :int x, :int value) = _toAdd.removeFirst();
+
+            _grid[y][x].value = value;
+          }
+          for (AnimatedTile tile in flattenedGrid) {
+            tile.resetAnimations();
+          }
+
+          controller.reset();
+          _actionIsUnlocked = true;
+        }
+      });
   }
 
   bool canSwipeLeft() => _grid.any(_canSwipe);

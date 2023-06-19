@@ -1,23 +1,20 @@
 import "package:flutter/material.dart";
+import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
+import "package:twenty_fourty_eight/data_structures/board_dimensions.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
-import "package:twenty_fourty_eight/widgets/tile/background_tile.dart";
+import "package:twenty_fourty_eight/widgets/board/tile/background_tile.dart";
 
 class BoardBackground extends StatelessWidget {
-  const BoardBackground({
-    required this.state,
-    required this.tileSize,
-    super.key,
-  });
-
-  final GameState state;
-  final double tileSize;
+  const BoardBackground({super.key});
 
   @override
   Widget build(BuildContext context) {
+    var BoardDimensions(:double tileSize) = context.watch<BoardDimensions>();
+
     return Stack(
       children: <Widget>[
-        for (var AnimatedTile(:int y, :int x) in state.renderTiles) //
+        for (var AnimatedTile(:int y, :int x) in context.select((GameState state) => state.flattenedGrid)) //
           Positioned(
             top: y * tileSize,
             left: x * tileSize,
