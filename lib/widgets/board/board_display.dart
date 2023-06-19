@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
-import "package:twenty_fourty_eight/data_structures/board_dimensions.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
+import "package:twenty_fourty_eight/state/board_dimensions.dart";
 import "package:twenty_fourty_eight/widgets/board/board_background.dart";
 import "package:twenty_fourty_eight/widgets/board/board_game.dart";
 import "package:twenty_fourty_eight/widgets/board/tile/game_tile.dart";

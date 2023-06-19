@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
-import "package:twenty_fourty_eight/data_structures/board_dimensions.dart";
+import "package:twenty_fourty_eight/state/board_dimensions.dart";
 import "package:twenty_fourty_eight/widgets/board/tile/active_tile.dart";
 import "package:twenty_fourty_eight/widgets/scoreboard/scoreboard.dart";
 

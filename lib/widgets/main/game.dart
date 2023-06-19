@@ -2,8 +2,8 @@ import "dart:math";
 
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
-import "package:twenty_fourty_eight/data_structures/board_dimensions.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
+import "package:twenty_fourty_eight/state/board_dimensions.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
 import "package:twenty_fourty_eight/widgets/board/board_display.dart";
 import "package:twenty_fourty_eight/widgets/board/tile/game_tile.dart";
