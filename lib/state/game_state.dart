@@ -14,7 +14,7 @@ import "package:twenty_fourty_eight/shared/typedef.dart";
 class GameState {
   static const int defaultGridY = 4;
   static const int defaultGridX = 4;
-  static const Duration animationDuration = Duration(milliseconds: 1000);
+  static const Duration animationDuration = Duration(milliseconds: 285);
 
   late final AnimationController controller;
 
@@ -52,29 +52,7 @@ class GameState {
   Stream<int> get addedScoreStream => _addedScoreController.stream;
   Stream<int> get scoreStream => _scoreController.stream;
 
-  void dispose() {
-    controller.dispose();
-    _grid.clear();
-    _toAdd.clear();
-    unawaited(_updateController.close());
-    unawaited(_addedScoreController.close());
-    unawaited(_scoreController.close());
-  }
-
-  void reset() {
-    for (var AnimatedTile(:int y, :int x) in flattenedGrid) {
-      _grid[y][x].value = 0;
-    }
-
-    _startGame();
-    _alert();
-  }
-
   void Function(KeyEvent) get keyEventListener => (KeyEvent event) {
-        if (!_actionIsUnlocked) {
-          return;
-        }
-
         switch (event.logicalKey) {
           /// UP
           case LogicalKeyboardKey.arrowUp when canSwipeUp():
@@ -103,10 +81,6 @@ class GameState {
       };
 
   void Function(DragEndDetails) get verticalDragListener => (DragEndDetails details) {
-        if (!_actionIsUnlocked) {
-          return;
-        }
-
         switch (details.velocity.pixelsPerSecond.dy) {
           /// Swipe Up
           case < -200 when canSwipeUp():
@@ -119,10 +93,6 @@ class GameState {
       };
 
   void Function(DragEndDetails) get horizontalDragListener => (DragEndDetails details) {
-        if (!_actionIsUnlocked) {
-          return;
-        }
-
         switch (details.velocity.pixelsPerSecond.dx) {
           /// Swipe Left
           case < -200 when canSwipeLeft():
@@ -133,6 +103,24 @@ class GameState {
             swipeRight();
         }
       };
+
+  void dispose() {
+    controller.dispose();
+    _grid.clear();
+    _toAdd.clear();
+    unawaited(_updateController.close());
+    unawaited(_addedScoreController.close());
+    unawaited(_scoreController.close());
+  }
+
+  void reset() {
+    for (var AnimatedTile(:int y, :int x) in flattenedGrid) {
+      _grid[y][x].value = 0;
+    }
+
+    _startGame();
+    _alert();
+  }
 
   void registerAnimationController(TickerProvider provider) {
     controller = AnimationController(vsync: provider, duration: animationDuration)
