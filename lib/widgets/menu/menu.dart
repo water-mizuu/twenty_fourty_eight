@@ -164,17 +164,19 @@ class _MenuState extends State<Menu> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  MaterialButton(
-                    hoverColor: const Color.fromARGB(0, 0, 0, 0),
-                    onPressed: () {
-                      _save();
-                    },
-                    child: const Text(
-                      "Save Changes",
-                      style: TextStyle(
-                        fontSize: 28,
-                        color: CustomColors.brownText,
-                        fontWeight: FontWeight.w500,
+                  Center(
+                    child: MaterialButton(
+                      hoverColor: const Color.fromARGB(0, 0, 0, 0),
+                      onPressed: () {
+                        _save();
+                      },
+                      child: const Text(
+                        "Save Changes",
+                        style: TextStyle(
+                          fontSize: 28,
+                          color: CustomColors.brownText,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),

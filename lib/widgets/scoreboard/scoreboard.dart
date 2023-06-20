@@ -31,7 +31,7 @@ class Scoreboard extends StatelessWidget {
           ),
           MaterialButton(
             minWidth: width,
-            color: Colors.blue,
+            color: CustomColors.tile16,
             onPressed: () {
               context.read<GameState>().openMenu();
             },

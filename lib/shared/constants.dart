@@ -11,6 +11,8 @@ abstract final class CustomColors {
   static const Color displayText = Color.fromARGB(255, 238, 228, 218);
   static const Color brownText = Color.fromARGB(255, 119, 110, 101);
 
+  static const Color transparent = Color.fromARGB(0, 0, 0, 0);
+
   static const Color tile2 = Color.fromARGB(255, 238, 228, 220);
   static const Color tile4 = Color.fromARGB(255, 238, 225, 201);
   static const Color tile8 = Color.fromARGB(255, 243, 178, 122);
