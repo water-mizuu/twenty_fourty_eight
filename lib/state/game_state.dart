@@ -39,9 +39,9 @@ class GameState with ChangeNotifier {
   int gridX;
   bool displayMenu;
 
-  final List2<AnimatedTile> _grid;
   final Queue<AnimatedTile> _toAdd;
 
+  List2<AnimatedTile> _grid;
   bool _actionIsUnlocked;
   int _scoreBuffer;
 
@@ -251,11 +251,10 @@ class GameState with ChangeNotifier {
   }
 
   void _resetGrid() {
-    _grid.clear();
-
-    for (int y = 0; y < gridY; ++y) {
-      _grid.add(<AnimatedTile>[for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0)]);
-    }
+    _grid = <List<AnimatedTile>>[
+      for (int y = 0; y < gridY; ++y) //
+        <AnimatedTile>[for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0)]
+    ];
   }
 
   void _startGame() {
