@@ -26,6 +26,13 @@ class _AddedScorePopupState extends State<AddedScorePopup> with SingleTickerProv
   }
 
   @override
+  void dispose() {
+    animationController.dispose();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<int>(
       stream: context.select((GameState state) => state.addedScoreStream),
@@ -61,7 +68,7 @@ class _AddedScorePopupState extends State<AddedScorePopup> with SingleTickerProv
                       child: Text(
                         value > 0 ? "+${value.abs()}" : "-${value.abs()}",
                         style: const TextStyle(
-                          color: grayText,
+                          color: CustomColors.grayText,
                           fontSize: 24.0,
                           fontWeight: FontWeight.w700,
                         ),

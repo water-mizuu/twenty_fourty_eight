@@ -26,7 +26,7 @@ class _BoardGameState extends State<BoardGame> with SingleTickerProviderStateMix
     var BoardDimensions(:double tileSize) = context.watch<BoardDimensions>();
 
     return StreamBuilder<void>(
-      stream: state.updateStream,
+      stream: state.gameUpdateStream,
       builder: (BuildContext context, _) {
         return AnimatedBuilder(
           animation: state.controller,

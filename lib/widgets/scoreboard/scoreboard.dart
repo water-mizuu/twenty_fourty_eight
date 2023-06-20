@@ -1,9 +1,11 @@
 import "package:flutter/material.dart";
-import "package:twenty_fourty_eight/widgets/scoreboard/added_score_popup.dart";
-import "package:twenty_fourty_eight/widgets/scoreboard/current_score.dart";
+import "package:provider/provider.dart";
+import "package:twenty_fourty_eight/state/game_state.dart";
+import "package:twenty_fourty_eight/widgets/scoreboard/displays/added_score_popup.dart";
+import "package:twenty_fourty_eight/widgets/scoreboard/displays/current_score.dart";
 
 class Scoreboard extends StatelessWidget {
-  static const double aspectRatio = 1 / 2;
+  static const double aspectRatioWidthToHeight = 2 / 1;
 
   const Scoreboard({required this.width, super.key});
 
@@ -11,18 +13,38 @@ class Scoreboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        SizedBox(
-          width: width,
-          child: CurrentScore(width: width, aspectRatio: aspectRatio),
-        ),
-        SizedBox(
-          width: width,
-          height: width * aspectRatio,
-          child: const AddedScorePopup(),
-        )
-      ],
+    return SizedBox(
+      width: width,
+      child: Column(
+        children: <Widget>[
+          const Stack(
+            children: <Widget>[
+              AspectRatio(
+                aspectRatio: aspectRatioWidthToHeight,
+                child: CurrentScore(),
+              ),
+              AspectRatio(
+                aspectRatio: aspectRatioWidthToHeight,
+                child: AddedScorePopup(),
+              )
+            ],
+          ),
+          MaterialButton(
+            minWidth: width,
+            color: Colors.blue,
+            onPressed: () {
+              context.read<GameState>().openMenu();
+            },
+            child: const Text(
+              "MENU",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          )
+        ],
+      ),
     );
   }
 }

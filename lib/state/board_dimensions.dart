@@ -7,6 +7,8 @@ class BoardDimensions {
   final double gridWidth;
   final double gridInnerHeight;
   final double gridInnerWidth;
+  final double width;
+  final double height;
 
   const BoardDimensions({
     required this.tileSize,
@@ -14,6 +16,8 @@ class BoardDimensions {
     required this.gridWidth,
     required this.gridInnerHeight,
     required this.gridInnerWidth,
+    required this.width,
+    required this.height,
   });
 
   ({
@@ -22,12 +26,16 @@ class BoardDimensions {
     double gridWidth,
     double gridInnerHeight,
     double gridInnerWidth,
+    double width,
+    double height,
   }) get _record => (
         tileSize: tileSize,
         gridHeight: gridHeight,
         gridWidth: gridWidth,
         gridInnerHeight: gridInnerHeight,
         gridInnerWidth: gridInnerWidth,
+        width: width,
+        height: height,
       );
 
   @override

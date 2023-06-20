@@ -20,7 +20,7 @@ class BoardDisplay extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.all(GameTile.tileMarginRatio * tileSize / 2),
-      decoration: roundRadius.copyWith(color: darkBrown),
+      decoration: roundRadius.copyWith(color: CustomColors.darkBrown),
       child: Stack(
         children: <Widget>[
           const BoardBackground(),

@@ -6,28 +6,20 @@ import "package:twenty_fourty_eight/state/game_state.dart";
 class CurrentScore extends StatelessWidget {
   static const TextStyle displayTextStyle = TextStyle.new(fontSize: 32.0, fontWeight: FontWeight.w700);
 
-  const CurrentScore({
-    required this.width,
-    required this.aspectRatio,
-    super.key,
-  });
-
-  final double width;
-  final double aspectRatio;
+  const CurrentScore({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: width * aspectRatio,
       margin: const EdgeInsets.all(4.0),
-      color: darkBrown,
+      color: CustomColors.darkBrown,
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: Column(
           children: <Widget>[
             Text(
               "SCORE",
-              style: displayTextStyle.copyWith(color: displayText),
+              style: displayTextStyle.copyWith(color: CustomColors.displayText),
             ),
             StreamBuilder<int>(
               stream: context.select((GameState state) => state.scoreStream),
@@ -35,7 +27,7 @@ class CurrentScore extends StatelessWidget {
               builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
                 return Text(
                   snapshot.data.toString(),
-                  style: displayTextStyle.copyWith(color: whiteText),
+                  style: displayTextStyle.copyWith(color: CustomColors.whiteText),
                 );
               },
             ),

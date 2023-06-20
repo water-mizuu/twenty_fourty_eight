@@ -11,6 +11,11 @@ import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/shared/typedef.dart";
 
+enum MenuState {
+  openMenu,
+  closeMenu,
+}
+
 class GameState {
   static const int defaultGridY = 4;
   static const int defaultGridX = 4;
@@ -22,11 +27,13 @@ class GameState {
   int gridY;
   int gridX;
 
-  late final List2<AnimatedTile> _grid;
-  late final Queue<AnimatedTile> _toAdd;
-  late final StreamController<void> _updateController;
-  late final StreamController<int> _addedScoreController;
-  late final StreamController<int> _scoreController;
+  final List2<AnimatedTile> _grid;
+  final Queue<AnimatedTile> _toAdd;
+  final StreamController<void> _gameUpdateController;
+  final StreamController<void> _gridDimensionController;
+  final StreamController<int> _addedScoreController;
+  final StreamController<int> _scoreController;
+  final StreamController<MenuState> _menuController;
 
   bool _actionIsUnlocked;
   int _scoreBuffer;
@@ -34,9 +41,11 @@ class GameState {
   GameState([this.gridY = defaultGridY, this.gridX = defaultGridX])
       : score = 0,
         _actionIsUnlocked = true,
-        _updateController = StreamController<void>.broadcast(),
+        _gameUpdateController = StreamController<void>.broadcast(),
+        _gridDimensionController = StreamController<void>.broadcast(),
         _addedScoreController = StreamController<int>.broadcast(),
         _scoreController = StreamController<int>.broadcast(),
+        _menuController = StreamController<MenuState>.broadcast(),
         _toAdd = Queue<AnimatedTile>(),
         _grid = <List<AnimatedTile>>[
           for (int y = 0; y < gridY; ++y)
@@ -48,9 +57,12 @@ class GameState {
 
   Iterable<AnimatedTile> get flattenedGrid => _grid.expand((List<AnimatedTile> r) => r);
   Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_toAdd);
-  Stream<void> get updateStream => _updateController.stream;
+
+  Stream<void> get gameUpdateStream => _gameUpdateController.stream;
+  Stream<void> get gridDimensionStream => _gridDimensionController.stream;
   Stream<int> get addedScoreStream => _addedScoreController.stream;
   Stream<int> get scoreStream => _scoreController.stream;
+  Stream<MenuState> get menuStateStream => _menuController.stream;
 
   void Function(KeyEvent) get keyEventListener => (KeyEvent event) {
         switch (event.logicalKey) {
@@ -108,9 +120,11 @@ class GameState {
     controller.dispose();
     _grid.clear();
     _toAdd.clear();
-    unawaited(_updateController.close());
+    unawaited(_gameUpdateController.close());
+    unawaited(_gridDimensionController.close());
     unawaited(_addedScoreController.close());
     unawaited(_scoreController.close());
+    unawaited(_menuController.close());
   }
 
   void reset() {
@@ -139,6 +153,25 @@ class GameState {
           _actionIsUnlocked = true;
         }
       });
+  }
+
+  void openMenu() {
+    _menuController.add(MenuState.openMenu);
+  }
+
+  void closeMenu() {
+    _menuController.add(MenuState.closeMenu);
+  }
+
+  void changeDimensions(int gridY, int gridX) {
+    this.gridY = gridY;
+    this.gridX = gridX;
+
+    _resetGrid();
+    _startGame();
+
+    _alert();
+    _gridDimensionController.add(null);
   }
 
   bool canSwipeLeft() => _grid.any(_canSwipe);
@@ -214,6 +247,14 @@ class GameState {
 
   static int powerOfTwo(int gridY, int y, int x) => math.pow(2, y * gridY + x + 1).floor();
 
+  void _resetGrid() {
+    _grid.clear();
+
+    for (int y = 0; y < gridY; ++y) {
+      _grid.add(<AnimatedTile>[for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0)]);
+    }
+  }
+
   void _startGame() {
     score = 0;
 
@@ -271,7 +312,7 @@ class GameState {
   }
 
   void _alert() {
-    _updateController.add(null);
+    _gameUpdateController.add(null);
 
     score += _scoreBuffer;
     if (_scoreBuffer > 0) {

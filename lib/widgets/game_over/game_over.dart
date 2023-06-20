@@ -67,7 +67,7 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<void>(
-        stream: context.select((GameState value) => value.updateStream),
+        stream: context.select((GameState value) => value.gameUpdateStream),
         builder: (BuildContext context, _) {
           if (context.read<GameState>().canSwipeAnywhere()) {
             return const SizedBox();
