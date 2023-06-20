@@ -53,17 +53,17 @@ class ActiveTile extends StatelessWidget {
   }
 
   static (Color, Color) tileColor(int number) => switch (number) {
-        2 => const (Color.fromARGB(255, 238, 228, 220), grayText),
-        4 => const (Color.fromARGB(255, 238, 225, 201), grayText),
-        8 => const (Color.fromARGB(255, 243, 178, 122), whiteText),
-        16 => const (Color.fromARGB(255, 246, 150, 100), whiteText),
-        32 => const (Color.fromARGB(255, 247, 124, 95), whiteText),
-        64 => const (Color.fromARGB(255, 247, 95, 59), whiteText),
-        128 => const (Color.fromARGB(255, 237, 208, 115), whiteText),
-        256 => const (Color.fromARGB(255, 237, 204, 98), whiteText),
-        512 => const (Color.fromARGB(255, 237, 201, 80), whiteText),
-        1024 => const (Color.fromARGB(255, 237, 197, 63), whiteText),
-        2048 => const (Color.fromARGB(255, 237, 194, 46), whiteText),
-        _ => const (Color.fromARGB(255, 60, 58, 51), whiteText),
+        2 => const (Color.fromARGB(255, 238, 228, 220), CustomColors.grayText),
+        4 => const (Color.fromARGB(255, 238, 225, 201), CustomColors.grayText),
+        8 => const (Color.fromARGB(255, 243, 178, 122), CustomColors.whiteText),
+        16 => const (Color.fromARGB(255, 246, 150, 100), CustomColors.whiteText),
+        32 => const (Color.fromARGB(255, 247, 124, 95), CustomColors.whiteText),
+        64 => const (Color.fromARGB(255, 247, 95, 59), CustomColors.whiteText),
+        128 => const (Color.fromARGB(255, 237, 208, 115), CustomColors.whiteText),
+        256 => const (Color.fromARGB(255, 237, 204, 98), CustomColors.whiteText),
+        512 => const (Color.fromARGB(255, 237, 201, 80), CustomColors.whiteText),
+        1024 => const (Color.fromARGB(255, 237, 197, 63), CustomColors.whiteText),
+        2048 => const (Color.fromARGB(255, 237, 194, 46), CustomColors.whiteText),
+        _ => const (Color.fromARGB(255, 60, 58, 51), CustomColors.whiteText),
       };
 }
