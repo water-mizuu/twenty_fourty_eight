@@ -1,12 +1,11 @@
-import "dart:async";
 import "dart:collection";
 import "dart:io";
 import "dart:math" as math;
 
-import "package:flutter/animation.dart";
-import "package:flutter/gestures.dart";
+import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
+import "package:twenty_fourty_eight/data_structures/box.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/shared/typedef.dart";
@@ -16,7 +15,7 @@ enum MenuState {
   closeMenu,
 }
 
-class GameState {
+class GameState with ChangeNotifier {
   static const int defaultGridY = 4;
   static const int defaultGridX = 4;
   static const Duration animationDuration = Duration(milliseconds: 285);
@@ -24,107 +23,56 @@ class GameState {
   late final AnimationController controller;
 
   int score;
+  // Why Box<int> instead of int? Because when we change the value to a value
+  //  with the same number (but we changed it), the framework does not count it as a change.
+  // Basically, we want it to update each _alert(), and alerting the same value twice in a row won't count.
+  //
+  // tl;dr:
+  //  framework pov:
+  //    value.set(3)
+  //    value.set(3) // didn't change, so there's no need to update.
+  //  what we want:
+  //    value.set(3)
+  //    value.set(3) // oh we called set, update its listeners.
+  Box<int> addedScore;
   int gridY;
   int gridX;
+  bool displayMenu;
 
   final List2<AnimatedTile> _grid;
   final Queue<AnimatedTile> _toAdd;
-  final StreamController<void> _gameUpdateController;
-  final StreamController<void> _gridDimensionController;
-  final StreamController<int> _addedScoreController;
-  final StreamController<int> _scoreController;
-  final StreamController<MenuState> _menuController;
 
   bool _actionIsUnlocked;
   int _scoreBuffer;
 
   GameState([this.gridY = defaultGridY, this.gridX = defaultGridX])
       : score = 0,
+        addedScore = const Box<int>(0),
+        displayMenu = false,
+        _scoreBuffer = 0,
         _actionIsUnlocked = true,
-        _gameUpdateController = StreamController<void>.broadcast(),
-        _gridDimensionController = StreamController<void>.broadcast(),
-        _addedScoreController = StreamController<int>.broadcast(),
-        _scoreController = StreamController<int>.broadcast(),
-        _menuController = StreamController<MenuState>.broadcast(),
         _toAdd = Queue<AnimatedTile>(),
         _grid = <List<AnimatedTile>>[
           for (int y = 0; y < gridY; ++y)
             <AnimatedTile>[
               for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
             ],
-        ],
-        _scoreBuffer = 0;
+        ];
 
   Iterable<AnimatedTile> get flattenedGrid => _grid.expand((List<AnimatedTile> r) => r);
   Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_toAdd);
 
-  Stream<void> get gameUpdateStream => _gameUpdateController.stream;
-  Stream<void> get gridDimensionStream => _gridDimensionController.stream;
-  Stream<int> get addedScoreStream => _addedScoreController.stream;
-  Stream<int> get scoreStream => _scoreController.stream;
-  Stream<MenuState> get menuStateStream => _menuController.stream;
+  ValueChanged<KeyEvent> get keyListener => _keyEventListener;
+  (GestureDragEndCallback, GestureDragEndCallback) get dragEndListeners =>
+      (_verticalDragListener, _horizontalDragListener);
 
-  void Function(KeyEvent) get keyEventListener => (KeyEvent event) {
-        switch (event.logicalKey) {
-          /// UP
-          case LogicalKeyboardKey.arrowUp when canSwipeUp():
-            swipeUp();
-
-          /// DOWN
-          case LogicalKeyboardKey.arrowDown when canSwipeDown():
-            swipeDown();
-
-          /// LEFT
-          case LogicalKeyboardKey.arrowLeft when canSwipeLeft():
-            swipeLeft();
-
-          /// RIGHT
-          case LogicalKeyboardKey.arrowRight when canSwipeRight():
-            swipeRight();
-
-          /// DEBUGS
-          case LogicalKeyboardKey.numpad0 when isDebug:
-            _fail();
-
-          /// DEBUGS
-          case LogicalKeyboardKey.numpad1 when isDebug:
-            stdout.writeln(collectionEqual(_grid, parseRunLengthEncoding(runLengthEncoding)));
-        }
-      };
-
-  void Function(DragEndDetails) get verticalDragListener => (DragEndDetails details) {
-        switch (details.velocity.pixelsPerSecond.dy) {
-          /// Swipe Up
-          case < -200 when canSwipeUp():
-            swipeUp();
-
-          /// Swipe Down
-          case > 200 when canSwipeDown():
-            swipeDown();
-        }
-      };
-
-  void Function(DragEndDetails) get horizontalDragListener => (DragEndDetails details) {
-        switch (details.velocity.pixelsPerSecond.dx) {
-          /// Swipe Left
-          case < -200 when canSwipeLeft():
-            swipeLeft();
-
-          /// Swipe Right
-          case > 200 when canSwipeRight():
-            swipeRight();
-        }
-      };
-
+  @override
   void dispose() {
     controller.dispose();
     _grid.clear();
     _toAdd.clear();
-    unawaited(_gameUpdateController.close());
-    unawaited(_gridDimensionController.close());
-    unawaited(_addedScoreController.close());
-    unawaited(_scoreController.close());
-    unawaited(_menuController.close());
+
+    super.dispose();
   }
 
   void reset() {
@@ -156,11 +104,15 @@ class GameState {
   }
 
   void openMenu() {
-    _menuController.add(MenuState.openMenu);
+    displayMenu = true;
+
+    notifyListeners();
   }
 
   void closeMenu() {
-    _menuController.add(MenuState.closeMenu);
+    displayMenu = false;
+
+    notifyListeners();
   }
 
   void changeDimensions(int gridY, int gridX) {
@@ -171,7 +123,6 @@ class GameState {
     _startGame();
 
     _alert();
-    _gridDimensionController.add(null);
   }
 
   bool canSwipeLeft() => _grid.any(_canSwipe);
@@ -247,6 +198,58 @@ class GameState {
 
   static int powerOfTwo(int gridY, int y, int x) => math.pow(2, y * gridY + x + 1).floor();
 
+  void _keyEventListener(KeyEvent event) {
+    switch (event.logicalKey) {
+      /// UP
+      case LogicalKeyboardKey.arrowUp when canSwipeUp():
+        swipeUp();
+
+      /// DOWN
+      case LogicalKeyboardKey.arrowDown when canSwipeDown():
+        swipeDown();
+
+      /// LEFT
+      case LogicalKeyboardKey.arrowLeft when canSwipeLeft():
+        swipeLeft();
+
+      /// RIGHT
+      case LogicalKeyboardKey.arrowRight when canSwipeRight():
+        swipeRight();
+
+      /// DEBUGS
+      case LogicalKeyboardKey.numpad0 when isDebug:
+        _fail();
+
+      /// DEBUGS
+      case LogicalKeyboardKey.numpad1 when isDebug:
+        stdout.writeln(collectionEqual(_grid, parseRunLengthEncoding(runLengthEncoding)));
+    }
+  }
+
+  void _verticalDragListener(DragEndDetails details) {
+    switch (details.velocity.pixelsPerSecond.dy) {
+      /// Swipe Up
+      case < -200 when canSwipeUp():
+        swipeUp();
+
+      /// Swipe Down
+      case > 200 when canSwipeDown():
+        swipeDown();
+    }
+  }
+
+  void _horizontalDragListener(DragEndDetails details) {
+    switch (details.velocity.pixelsPerSecond.dx) {
+      /// Swipe Left
+      case < -200 when canSwipeLeft():
+        swipeLeft();
+
+      /// Swipe Right
+      case > 200 when canSwipeRight():
+        swipeRight();
+    }
+  }
+
   void _resetGrid() {
     _grid.clear();
 
@@ -312,13 +315,9 @@ class GameState {
   }
 
   void _alert() {
-    _gameUpdateController.add(null);
-
     score += _scoreBuffer;
-    if (_scoreBuffer > 0) {
-      _addedScoreController.add(_scoreBuffer);
-    }
-    _scoreController.add(score);
+    addedScore = Box<int>(_scoreBuffer);
+    notifyListeners();
     _scoreBuffer = 0;
   }
 

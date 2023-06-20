@@ -21,15 +21,9 @@ class CurrentScore extends StatelessWidget {
               "SCORE",
               style: displayTextStyle.copyWith(color: CustomColors.displayText),
             ),
-            StreamBuilder<int>(
-              stream: context.select((GameState state) => state.scoreStream),
-              initialData: 0,
-              builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-                return Text(
-                  snapshot.data.toString(),
-                  style: displayTextStyle.copyWith(color: CustomColors.whiteText),
-                );
-              },
+            Text(
+              context.select((GameState state) => state.score).toString(),
+              style: displayTextStyle.copyWith(color: CustomColors.whiteText),
             ),
           ],
         ),

@@ -3,7 +3,6 @@ import "dart:ui";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
-import "package:twenty_fourty_eight/state/board_dimensions.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
 
 class Menu extends StatefulWidget {
@@ -71,7 +70,7 @@ class _MenuState extends State<Menu> {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
       var Size(:double height) = constraints.constrain(Size.infinite);
-      var BoardDimensions(:double gridWidth) = context.watch<BoardDimensions>();
+      int gridX = context.select((GameState state) => state.gridX);
 
       return ColoredBox(
         color: const Color.fromARGB(128, 175, 175, 175),
@@ -79,13 +78,14 @@ class _MenuState extends State<Menu> {
           filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
           child: Center(
             child: SizedBox(
-              width: gridWidth,
+              width: Sizes.tileSize * gridX,
               height: height,
               child: FittedBox(
                 alignment: Alignment.topCenter,
                 fit: BoxFit.scaleDown,
                 child: Column(
                   children: <Widget>[
+                    Text("$gridX", style: const TextStyle(fontSize: 100)),
                     Text(
                       "Menu",
                       style: TextStyle(

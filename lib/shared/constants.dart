@@ -12,7 +12,12 @@ abstract final class CustomColors {
   static const Color brownText = Color.fromARGB(255, 119, 110, 101);
 }
 
-const BoxDecoration roundRadius = BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(8)));
+abstract final class Sizes {
+  static const double tileSize = 128.0;
+}
+
+const BoxDecoration roundRadius = BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(8.0)));
 final math.Random random = math.Random();
 
-const bool isDebug = true;
+/// NOTE: Do not touch the code.
+bool isDebug = false;

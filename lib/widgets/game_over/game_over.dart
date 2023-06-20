@@ -66,41 +66,37 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<void>(
-        stream: context.select((GameState value) => value.gameUpdateStream),
-        builder: (BuildContext context, _) {
-          if (context.read<GameState>().canSwipeAnywhere()) {
-            return const SizedBox();
-          } else {
-            controller.reset();
-            controller.forward();
+    if (context.read<GameState>().canSwipeAnywhere()) {
+      return const SizedBox();
+    } else {
+      controller.reset();
+      controller.forward();
 
-            return AnimatedBuilder(
-              animation: controller,
-              builder: (BuildContext context, Widget? child) {
-                var Animation<double>(value: double backgroundOpacity) = this.backgroundOpacity;
-                var Animation<double>(value: double blurRadius) = this.blurRadius;
-                var Animation<double>(value: double textMoveDown) = this.textMoveDown;
-                var Animation<int>(value: int textOpacity) = this.textOpacity;
-                var Animation<double>(value: double buttonOpacity) = this.buttonOpacity;
+      return AnimatedBuilder(
+        animation: controller,
+        builder: (BuildContext context, Widget? child) {
+          var Animation<double>(value: double backgroundOpacity) = this.backgroundOpacity;
+          var Animation<double>(value: double blurRadius) = this.blurRadius;
+          var Animation<double>(value: double textMoveDown) = this.textMoveDown;
+          var Animation<int>(value: int textOpacity) = this.textOpacity;
+          var Animation<double>(value: double buttonOpacity) = this.buttonOpacity;
 
-                return Opacity(
-                  opacity: backgroundOpacity,
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: blurRadius, sigmaY: blurRadius),
-                    child: DecoratedBox(
-                      decoration: roundRadius.copyWith(color: const Color.fromARGB(64, 192, 192, 192)),
-                      child: GameOverScreen(
-                        textMoveDown: textMoveDown,
-                        textOpacity: textOpacity,
-                        buttonOpacity: buttonOpacity,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          }
-        });
+          return Opacity(
+            opacity: backgroundOpacity,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: blurRadius, sigmaY: blurRadius),
+              child: DecoratedBox(
+                decoration: roundRadius.copyWith(color: const Color.fromARGB(64, 192, 192, 192)),
+                child: GameOverScreen(
+                  textMoveDown: textMoveDown,
+                  textOpacity: textOpacity,
+                  buttonOpacity: buttonOpacity,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
   }
 }
