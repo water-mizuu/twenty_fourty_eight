@@ -36,7 +36,6 @@ class _AddedScorePopupState extends State<AddedScorePopup> with SingleTickerProv
   Widget build(BuildContext context) {
     int currentScore = context.select((GameState state) => state.addedScore).value;
 
-    print(currentScore);
     switch (currentScore) {
       case int value && != 0:
         resetAnimations();
