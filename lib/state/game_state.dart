@@ -40,6 +40,8 @@ class GameState with ChangeNotifier {
   bool displayMenu;
 
   final Queue<AnimatedTile> _toAdd;
+  // Stores the (score, runLengthEncoding)s of the saved grids.
+  final Map<(int, int), (int, String)> _persistingData;
 
   List2<AnimatedTile> _grid;
   bool _actionIsUnlocked;
@@ -52,6 +54,7 @@ class GameState with ChangeNotifier {
         _scoreBuffer = 0,
         _actionIsUnlocked = true,
         _toAdd = Queue<AnimatedTile>(),
+        _persistingData = <(int, int), (int, String)>{},
         _grid = <List<AnimatedTile>>[
           for (int y = 0; y < gridY; ++y)
             <AnimatedTile>[
@@ -76,11 +79,9 @@ class GameState with ChangeNotifier {
   }
 
   void reset() {
-    for (var AnimatedTile(:int y, :int x) in flattenedGrid) {
-      _grid[y][x].value = 0;
-    }
-
-    _startGame();
+    // Nullify
+    _persistingData.remove((gridY, gridX));
+    _loadGrid();
     _alert();
   }
 
@@ -116,11 +117,12 @@ class GameState with ChangeNotifier {
   }
 
   void changeDimensions(int gridY, int gridX) {
+    _saveGrid();
+
     this.gridY = gridY;
     this.gridX = gridX;
 
-    _resetGrid();
-    _startGame();
+    _loadGrid();
 
     _alert();
   }
@@ -136,18 +138,18 @@ class GameState with ChangeNotifier {
   void swipeLeft() => _swipe(() => _grid.forEach(_mergeTiles));
   void swipeRight() => _swipe(() => _grid.reversedRows.forEach(_mergeTiles));
 
-  String get runLengthEncoding {
-    StringBuffer buffer = StringBuffer("$gridY;$gridX::");
+  static String runLengthEncoding(List2<AnimatedTile> tiles) {
+    StringBuffer buffer = StringBuffer("${tiles[0].length}::");
 
-    List<AnimatedTile> tiles = flattenedGrid.toList();
-    for (int i = 0; i < tiles.length; ++i) {
+    List<AnimatedTile> flattenedTiles = tiles.expand((List<AnimatedTile> v) => v).toList();
+    for (int i = 0; i < flattenedTiles.length; ++i) {
       int count = 1;
-      while (i + 1 < tiles.length && tiles[i].value == tiles[i + 1].value) {
+      while (i + 1 < flattenedTiles.length && flattenedTiles[i].value == flattenedTiles[i + 1].value) {
         ++count;
         ++i;
       }
-      buffer.write("${tiles[i].value}:$count");
-      if (i < tiles.length - 1) {
+      buffer.write("${flattenedTiles[i].value}:$count");
+      if (i < flattenedTiles.length - 1) {
         buffer.write(";");
       }
     }
@@ -157,7 +159,7 @@ class GameState with ChangeNotifier {
 
   static List2<AnimatedTile> parseRunLengthEncoding(String encoding) {
     var [String dimensionEncoding, String bodyEncoding] = encoding.split("::");
-    var [int gridY, int gridX] = dimensionEncoding.split(";").map(int.parse).toList();
+    int gridX = int.parse(dimensionEncoding);
 
     List2<AnimatedTile> grid = <List<AnimatedTile>>[];
     List<String> splitEncoding = bodyEncoding.split(";");
@@ -167,7 +169,7 @@ class GameState with ChangeNotifier {
     List<AnimatedTile> buffer = <AnimatedTile>[];
     for (var [int value, int count] in splitEncoding.map((String v) => v.split(":").map(int.parse).toList())) {
       for (int j = 0; j < count; ++j, ++i) {
-        var (int y, int x) = (i ~/ gridY, i % gridX);
+        var (int y, int x) = (i ~/ gridX, i % gridX);
 
         buffer.add(AnimatedTile((y: y, x: x), value));
         if (x == gridX - 1) {
@@ -222,7 +224,7 @@ class GameState with ChangeNotifier {
 
       /// DEBUGS
       case LogicalKeyboardKey.numpad1 when isDebug:
-        stdout.writeln(collectionEqual(_grid, parseRunLengthEncoding(runLengthEncoding)));
+        stdout.writeln(collectionEqual(_grid, parseRunLengthEncoding(runLengthEncoding(_grid))));
     }
   }
 
@@ -250,24 +252,26 @@ class GameState with ChangeNotifier {
     }
   }
 
-  void _resetGrid() {
-    _grid = <List<AnimatedTile>>[
-      for (int y = 0; y < gridY; ++y) //
-        <AnimatedTile>[for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0)]
-    ];
+  void _saveGrid() {
+    _persistingData[(gridY, gridX)] = (score, runLengthEncoding(_grid));
   }
 
-  void _startGame() {
-    score = 0;
+  void _loadGrid() {
+    switch (_persistingData[(gridY, gridX)]) {
+      case (int score, String encoding):
+        this.score = score;
+        this._grid = parseRunLengthEncoding(encoding);
+      case null:
+        this.score = 0;
+        this._grid = <List<AnimatedTile>>[
+          for (int y = 0; y < gridY; ++y) //
+            <AnimatedTile>[for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0)]
+        ];
 
-    _actionIsUnlocked = true;
-    List<AnimatedTile> shuffledTiles = flattenedGrid.toList()..shuffle();
-    for (var AnimatedTile(:int y, :int x) in shuffledTiles.take(2)) {
-      _grid[y][x].value = randomTileNumber();
+        for (AnimatedTile tile in (flattenedGrid.toList()..shuffle()).take(2)) {
+          tile.value = randomTileNumber();
+        }
     }
-    // for (var AnimatedTile(:int y, :int x) in shuffledTiles.skip(1)) {
-    //   _grid[y][x].value = powerOfTwo(gridY, y, x);
-    // }
 
     for (AnimatedTile tile in flattenedGrid) {
       tile.resetAnimations();
