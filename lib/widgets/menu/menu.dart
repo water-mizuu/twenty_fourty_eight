@@ -1,4 +1,3 @@
-import "dart:math";
 import "dart:ui";
 
 import "package:flutter/material.dart";
@@ -69,127 +68,123 @@ class _MenuState extends State<Menu> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
-      var Size(:double height) = constraints.constrain(Size.infinite);
-      int gridX = context.select((GameState state) => state.gridX);
-      double boxWidth = Sizes.tileSize * max(gridX, 4);
+    double boxWidth = Sizes.tileSize * 5;
+    double horizontalMargin = boxWidth * 0.035;
 
-      return ColoredBox(
-        color: const Color.fromARGB(128, 175, 175, 175),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
-          child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: SizedBox(
-                width: boxWidth,
-                height: height,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Center(
-                      child: Text(
-                        "Menu",
-                        style: TextStyle(
-                          fontSize: height * 0.085,
-                          color: const Color.fromARGB(255, 119, 110, 101),
-                          fontWeight: FontWeight.w700,
-                        ),
+    return ColoredBox(
+      color: const Color.fromARGB(128, 175, 175, 175),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: SizedBox(
+              width: boxWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  const Center(
+                    child: Text(
+                      "Menu",
+                      style: TextStyle(
+                        fontSize: 64,
+                        color: Color.fromARGB(255, 119, 110, 101),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(height: height * 0.045),
-                    Container(
-                      margin: EdgeInsets.symmetric(horizontal: boxWidth * 0.035),
-                      child: Row(
-                        children: <Widget>[
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Horizontal Tile Count",
-                                style: TextStyle(
-                                  fontSize: height * 0.035,
-                                  color: CustomColors.brownText,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(height: height * 0.045),
-                              Text(
-                                "Vertical Tile Count",
-                                style: TextStyle(
-                                  fontSize: height * 0.035,
-                                  color: CustomColors.brownText,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(width: boxWidth * 0.035),
-                          Expanded(
-                            child: SliderTheme(
-                              data: SliderThemeData(trackShape: CustomTrackShape()),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: <Widget>[
-                                  Slider(
-                                    value: _xSliderValue,
-                                    max: 8.0,
-                                    divisions: 8.0.floor(),
-                                    activeColor: CustomColors.brownText,
-                                    label: _xSliderValue.floor().toString(),
-                                    onChanged: (double value) {
-                                      if (value case >= 2.0 && <= 8.0) {
-                                        setState(() {
-                                          _xSliderValue = value;
-                                        });
-                                      }
-                                    },
-                                  ),
-                                  SizedBox(height: height * 0.045),
-                                  Slider(
-                                    value: _ySliderValue,
-                                    max: 8.0,
-                                    divisions: 8.0.floor(),
-                                    activeColor: CustomColors.brownText,
-                                    label: _ySliderValue.floor().toString(),
-                                    onChanged: (double value) {
-                                      if (value case >= 2.0 && <= 8.0) {
-                                        setState(() {
-                                          _ySliderValue = value;
-                                        });
-                                      }
-                                    },
-                                  ),
-                                ],
+                  ),
+                  const SizedBox(height: 32),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
+                    child: Row(
+                      children: <Widget>[
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              "Horizontal Tile Count",
+                              style: TextStyle(
+                                fontSize: 28,
+                                color: CustomColors.brownText,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: height * 0.045),
-                    MaterialButton(
-                      hoverColor: const Color.fromARGB(0, 0, 0, 0),
-                      onPressed: () {
-                        _save();
-                      },
-                      child: Text(
-                        "Save Changes",
-                        style: TextStyle(
-                          fontSize: height * 0.035,
-                          color: CustomColors.brownText,
-                          fontWeight: FontWeight.w500,
+                            SizedBox(height: 32),
+                            Text(
+                              "Vertical Tile Count",
+                              style: TextStyle(
+                                fontSize: 28,
+                                color: CustomColors.brownText,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
+                        SizedBox(width: horizontalMargin),
+                        Expanded(
+                          child: SliderTheme(
+                            data: SliderThemeData(trackShape: CustomTrackShape()),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: <Widget>[
+                                Slider(
+                                  value: _xSliderValue,
+                                  max: 8.0,
+                                  divisions: 8.0.floor(),
+                                  activeColor: CustomColors.brownText,
+                                  label: _xSliderValue.floor().toString(),
+                                  onChanged: (double value) {
+                                    if (value case >= 2.0 && <= 8.0) {
+                                      setState(() {
+                                        _xSliderValue = value;
+                                      });
+                                    }
+                                  },
+                                ),
+                                const SizedBox(height: 32),
+                                Slider(
+                                  value: _ySliderValue,
+                                  max: 8.0,
+                                  divisions: 8.0.floor(),
+                                  activeColor: CustomColors.brownText,
+                                  label: _ySliderValue.floor().toString(),
+                                  onChanged: (double value) {
+                                    if (value case >= 2.0 && <= 8.0) {
+                                      setState(() {
+                                        _ySliderValue = value;
+                                      });
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  MaterialButton(
+                    hoverColor: const Color.fromARGB(0, 0, 0, 0),
+                    onPressed: () {
+                      _save();
+                    },
+                    child: const Text(
+                      "Save Changes",
+                      style: TextStyle(
+                        fontSize: 28,
+                        color: CustomColors.brownText,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 }
 
