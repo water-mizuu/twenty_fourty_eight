@@ -9,16 +9,17 @@ class ScoreboardButton extends StatelessWidget {
   });
 
   final String text;
-  final void Function() onPressed;
+  final void Function()? onPressed;
 
   @override
   Widget build(final BuildContext context) => MaterialButton(
         color: CustomColors.tile16,
+        textColor: onPressed == null ? CustomColors.lightBrown : CustomColors.whiteText,
+        disabledColor: CustomColors.grayText,
         onPressed: onPressed,
         child: Text(
           text,
           style: const TextStyle(
-            color: Colors.white,
             fontWeight: FontWeight.w700,
           ),
         ),

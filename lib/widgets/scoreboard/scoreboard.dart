@@ -31,7 +31,12 @@ class Scoreboard extends StatelessWidget {
           const SizedBox(height: height * 0.025),
           ScoreboardButton(text: "MENU", onPressed: () => state.openMenu()),
           const SizedBox(height: height * 0.025),
-          ScoreboardButton(text: "BACKTRACK", onPressed: () => state.backtrack())
+          ScoreboardButton(
+            text: "BACKTRACK",
+            onPressed: context.select((final GameState state) => state.canBacktrack())
+                ? () => state.backtrack() //
+                : null,
+          ),
         ],
       ),
     );

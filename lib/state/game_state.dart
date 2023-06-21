@@ -153,6 +153,8 @@ class GameState with ChangeNotifier {
 
   void backtrack() => _backtrack();
 
+  bool canBacktrack() => _actionHistory.isNotEmpty;
+
   static int randomTileNumber() => switch (random.nextDouble()) {
         <= 0.125 => 4,
         _ => 2,
