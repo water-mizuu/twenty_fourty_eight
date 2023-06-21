@@ -30,6 +30,7 @@ class _BoardGameState extends State<BoardGame> with SingleTickerProviderStateMix
                   animatedY: Animation<double>(value: double animatedY),
                   animatedValue: Animation<int>(value: int animatedValue),
                   scale: Animation<double>(value: double scale),
+                  opacity: Animation<double>(value: double opacity),
                 ) in context.select((final GameState state) => state.renderTiles))
               if (animatedValue != 0) //
                 Positioned(
@@ -37,9 +38,12 @@ class _BoardGameState extends State<BoardGame> with SingleTickerProviderStateMix
                   top: animatedY * Sizes.tileSize,
                   height: Sizes.tileSize,
                   width: Sizes.tileSize,
-                  child: ActiveTile(
-                    scale: scale,
-                    animatedValue: animatedValue,
+                  child: Opacity(
+                    opacity: opacity,
+                    child: ActiveTile(
+                      scale: scale,
+                      animatedValue: animatedValue,
+                    ),
                   ),
                 ),
           ],

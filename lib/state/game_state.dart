@@ -24,13 +24,28 @@ class GameState with ChangeNotifier {
         displayMenu = false,
         _scoreBuffer = 0,
         _actionIsUnlocked = true,
-        _toAdd = Queue<AnimatedTile>(),
+        _ghost = Queue<AnimatedTile>(),
         _persistingData = <(int, int), (int, String, Queue<MoveAction>)>{},
+        // _grid = <List<AnimatedTile>>[
+        //   for (int y = 0; y < gridY; ++y)
+        //     <AnimatedTile>[
+        //       for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
+        //     ],
+        // ],
         _grid = <List<AnimatedTile>>[
           for (int y = 0; y < gridY; ++y)
             <AnimatedTile>[
-              for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
-            ],
+              for (int x = 0; x < gridX; ++x)
+                AnimatedTile(
+                  (y: y, x: x),
+                  <List<int>>[
+                    <int>[0, 0, 0, 0],
+                    <int>[2, 0, 2, 2],
+                    <int>[0, 0, 0, 0],
+                    <int>[0, 0, 0, 2],
+                  ][y][x],
+                ),
+            ]
         ],
         _actionHistory = Queue<MoveAction>();
 
@@ -57,7 +72,7 @@ class GameState with ChangeNotifier {
   int gridX;
   bool displayMenu;
 
-  final Queue<AnimatedTile> _toAdd;
+  final Queue<AnimatedTile> _ghost;
   // Stores the (score, runLengthEncoding)s of the saved grids.
   final Map<(int, int), (int, String, Queue<MoveAction>)> _persistingData;
 
@@ -67,7 +82,7 @@ class GameState with ChangeNotifier {
   Queue<MoveAction> _actionHistory;
 
   Iterable<AnimatedTile> get flattenedGrid => _grid.expand((final List<AnimatedTile> r) => r);
-  Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_toAdd);
+  Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_ghost);
 
   ValueChanged<KeyEvent> get keyListener => _keyEventListener;
   (GestureDragEndCallback, GestureDragEndCallback) get dragEndListeners =>
@@ -77,7 +92,7 @@ class GameState with ChangeNotifier {
   void dispose() {
     controller.dispose();
     _grid.clear();
-    _toAdd.clear();
+    _ghost.clear();
 
     super.dispose();
   }
@@ -86,18 +101,14 @@ class GameState with ChangeNotifier {
     // Nullify
     _persistingData.remove((gridY, gridX));
     _loadGrid();
-    _alert();
+    notifyListeners();
   }
 
   void registerAnimationController(final TickerProvider provider) {
     controller = AnimationController(vsync: provider, duration: animationDuration)
       ..addStatusListener((final AnimationStatus status) {
         if (status case AnimationStatus.completed) {
-          while (_toAdd.isNotEmpty) {
-            final AnimatedTile(:int y, :int x, :int value) = _toAdd.removeFirst();
-
-            _grid[y][x].value = value;
-          }
+          _ghost.clear();
           for (final AnimatedTile tile in flattenedGrid) {
             tile.resetAnimations();
           }
@@ -127,8 +138,7 @@ class GameState with ChangeNotifier {
     this.gridX = gridX;
 
     _loadGrid();
-
-    _alert();
+    notifyListeners();
   }
 
   bool canSwipeLeft() => _grid.any(_canSwipe);
@@ -140,6 +150,8 @@ class GameState with ChangeNotifier {
   bool canSwipeDown() => _grid.columns.reversedRows.any(_canSwipe);
 
   bool canSwipeAnywhere() => canSwipeUp() || canSwipeDown() || canSwipeLeft() || canSwipeRight();
+
+  void backtrack() => _backtrack();
 
   static int randomTileNumber() => switch (random.nextDouble()) {
         <= 0.125 => 4,
@@ -204,6 +216,10 @@ class GameState with ChangeNotifier {
   }
 
   void _keyEventListener(final KeyEvent event) {
+    if (event is KeyUpEvent) {
+      return;
+    }
+
     switch (event.logicalKey) {
       /// UP
       case LogicalKeyboardKey.arrowUp when canSwipeUp():
@@ -228,6 +244,10 @@ class GameState with ChangeNotifier {
       /// DEBUGS
       case LogicalKeyboardKey.numpad1 when isDebug:
         stdout.writeln(_collectionEqual(_grid, _parseRunLengthEncoding(_runLengthEncoding(_grid))));
+
+      /// DEBUGS
+      case LogicalKeyboardKey.numpad2 when isDebug:
+        _backtrack();
     }
   }
 
@@ -268,12 +288,14 @@ class GameState with ChangeNotifier {
       case null:
         this.score = 0;
         this._grid = <List<AnimatedTile>>[
-          for (int y = 0; y < gridY; ++y) //
-            <AnimatedTile>[for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0)]
+          for (int y = 0; y < gridY; ++y)
+            <AnimatedTile>[
+              for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
+            ]
         ];
         this._actionHistory = Queue<MoveAction>();
 
-        for (final AnimatedTile tile in (flattenedGrid.toList()..shuffle()).take(2)) {
+        for (final AnimatedTile tile in (flattenedGrid.toList()..shuffle()).take(1)) {
           tile.value = randomTileNumber();
         }
     }
@@ -288,24 +310,26 @@ class GameState with ChangeNotifier {
       _grid[y][x].value = powerOfTwo(gridY, y, x);
     }
 
-    _alert();
+    notifyListeners();
   }
 
-  void _addNewTile() {
+  Set<Tile> _addNewTile() {
+    final Set<Tile> newTiles = <Tile>{};
     final List<AnimatedTile> empty = flattenedGrid //
         .where((final AnimatedTile tile) => tile.value == 0)
         .toList()
       ..shuffle();
 
-    if (empty.isEmpty) {
-      return;
+    if (empty.isNotEmpty) {
+      final (AnimatedTile chosenTile && AnimatedTile(:int y, :int x)) = empty.first;
+      final int chosenValue = randomTileNumber();
+      chosenTile.value = chosenValue;
+      newTiles.add((y: y, x: x, value: chosenValue));
+
+      _ghost.add(AnimatedTile((y: y, x: x), chosenValue)..appear(controller));
     }
 
-    final AnimatedTile(:int y, :int x) = empty.first;
-    final int chosen = randomTileNumber();
-    _grid[y][x].value = chosen;
-
-    _toAdd.add(AnimatedTile((y: y, x: x), chosen)..appear(controller));
+    return newTiles;
   }
 
   void _swipe(final Direction direction) {
@@ -314,28 +338,192 @@ class GameState with ChangeNotifier {
       return;
     }
 
-    switch (direction) {
-      case Direction.up:
-        _grid.columns.forEach(_mergeTiles);
-      case Direction.down:
-        _grid.columns.reversedRows.forEach(_mergeTiles);
-      case Direction.left:
-        _grid.forEach(_mergeTiles);
-      case Direction.right:
-        _grid.reversedRows.forEach(_mergeTiles);
-    }
-    _addNewTile();
     _actionIsUnlocked = false;
-    controller.forward(from: 0);
 
-    _alert();
+    _computation:
+    {
+      final Iterable<List<AnimatedTile>> target = switch (direction) {
+        Direction.up => _grid.columns,
+        Direction.down => _grid.columns.reversedRows,
+        Direction.left => _grid,
+        Direction.right => _grid.reversedRows,
+      };
+
+      final List<Merge> merges = <Merge>[];
+      for (final List<AnimatedTile> tiles in target) {
+        /// SWIPE LEFT ALGORITHM
+        for (int i = 0; i < tiles.length; ++i) {
+          /// We get the sublist from [i], disregarding zeros until the first nonzero.
+          final List<AnimatedTile> toCheck = tiles
+              .skip(i) //
+              .skipWhile((final AnimatedTile tile) => tile.value == 0)
+              .toList();
+
+          /// If this happens, then the rest of the list from the right of [i]
+          ///   are all zeros, so we don't have to do anything now.
+          if (toCheck.isEmpty) {
+            break;
+          }
+
+          final AnimatedTile target = toCheck.first;
+
+          AnimatedTile? merge = toCheck //
+              .skip(1)
+              .where((final AnimatedTile tile) => tile.value != 0)
+              .firstOrNull;
+
+          if (merge case AnimatedTile(:final int value) when value != target.value) {
+            merge = null;
+          }
+
+          if (tiles[i].value == 0 || merge != null) {
+            final AnimatedTile(:int x, :int y) = tiles[i];
+            int value = target.value;
+
+            /// Animate the tile at position t.
+            target.animate(controller);
+
+            _ghost.add(
+              AnimatedTile.from(target.tile) //
+                ..moveTo(controller, x, y),
+            );
+
+            /// If we are *confirmed* to be merging two tiles, then:
+            if (merge != null) {
+              /// Increase the resulting value of the target,
+              value *= 2;
+
+              merge.animate(controller);
+
+              /// Do some animations.
+              _ghost.add(
+                AnimatedTile.from(merge.tile)
+                  ..moveTo(controller, x, y)
+                  ..bounce(controller)
+                  ..changeNumber(controller, value),
+              );
+
+              /// Change the value of the merged tile,
+              merge.value = 0;
+
+              /// And the last animation
+              target.changeNumber(controller, 0);
+
+              _addScore(value);
+            }
+
+            /// Update their values after the update.
+            /// Sequence is important here, because there are cases when target == tiles[i].
+            target.value = 0;
+            tiles[i].value = value;
+
+            merges.add((from: (target.tile, merge?.tile), to: tiles[i].tile));
+          }
+        }
+      }
+      final Set<Tile> added = _addNewTile();
+
+      score += _scoreBuffer;
+      addedScore = Box<int>(_scoreBuffer);
+      _actionHistory.addFirst(MoveAction(merges: merges, added: added, scoreDelta: _scoreBuffer));
+
+      _scoreBuffer = 0;
+      break _computation;
+    }
+
+    controller.forward(from: 0.0);
+    notifyListeners();
   }
 
-  void _alert() {
-    score += _scoreBuffer;
-    addedScore = Box<int>(_scoreBuffer);
+  void _backtrack() {
+    if (!_actionIsUnlocked || _actionHistory.isEmpty) {
+      return;
+    }
+
+    _actionIsUnlocked = false;
+
+    _computation:
+    {
+      final MoveAction(
+        :List<Merge> merges,
+        :Set<Tile> added,
+        :int scoreDelta,
+      ) = _actionHistory.removeFirst();
+
+      for (final Tile tile in added) {
+        _ghost.add(AnimatedTile.from(tile)..disappear(controller));
+        _grid.at(tile)
+          ..animate(controller)
+          ..value = 0;
+      }
+
+      for (final Merge merge in merges.reversed) {
+        switch (merge) {
+          case (from: (final Tile target, null), to: final Tile destination):
+            final int value = destination.value;
+
+            _ghost
+              ..add(
+                AnimatedTile.from(destination) //
+                  ..unmoveTo(controller, target.x, target.y)
+                  ..unchangeNumber(controller, value),
+              )
+              ..add(
+                AnimatedTile.from(target) //
+                  ..unchangeNumber(controller, 0),
+              );
+
+            _grid.at(destination)
+              ..resetAnimations()
+              ..animate(controller)
+              ..value = 0;
+            _grid.at(target)
+              ..resetAnimations()
+              ..animate(controller)
+              ..value = value;
+
+          case (from: (final Tile target, final Tile merge), to: final Tile destination):
+            final int value = destination.value ~/ 2;
+
+            _ghost
+              ..add(
+                AnimatedTile.from(destination, value) //
+                  ..debounce(controller)
+                  ..unchangeNumber(controller, 0),
+              )
+              ..add(
+                AnimatedTile.from(destination, value) //
+                  ..unmoveTo(controller, target.x, target.y),
+              )
+              ..add(
+                AnimatedTile.from(destination, value) //
+                  ..unmoveTo(controller, merge.x, merge.y),
+              );
+
+            _grid.at(destination)
+              ..resetAnimations()
+              ..animate(controller)
+              ..value = 0;
+
+            _grid.at(target)
+              ..resetAnimations()
+              ..animate(controller)
+              ..value = value;
+
+            _grid.at(merge)
+              ..resetAnimations()
+              ..animate(controller)
+              ..value = value;
+        }
+      }
+
+      score -= scoreDelta;
+      addedScore = Box<int>(-scoreDelta);
+      break _computation;
+    }
+
+    controller.forward(from: 0.0);
     notifyListeners();
-    _scoreBuffer = 0;
   }
 
   /// Returns a [bool] indicating whether [tiles] can be swiped to left
@@ -354,68 +542,6 @@ class GameState with ChangeNotifier {
     }
 
     return false;
-  }
-
-  /// Merges [tiles] towards the left.
-  /// i.e: [2, 0, 0, 8] -> [2, 8, 0, 0]
-  void _mergeTiles(final List<AnimatedTile> tiles) {
-    for (int i = 0; i < tiles.length; ++i) {
-      /// We get the sublist from [i], disregarding zeros until the first nonzero.
-      final List<AnimatedTile> toCheck = tiles
-          .skip(i) //
-          .skipWhile((final AnimatedTile tile) => tile.value == 0)
-          .toList();
-
-      /// If this happens, then the rest of the list from the right of [i]
-      ///   are all zeros, so we don't have to do anything now.
-      if (toCheck.isEmpty) {
-        return;
-      }
-
-      final AnimatedTile target = toCheck.first;
-
-      AnimatedTile? merge = toCheck //
-          .skip(1)
-          .where((final AnimatedTile tile) => tile.value != 0)
-          .firstOrNull;
-
-      if (merge case AnimatedTile(:final int value) when value != target.value) {
-        merge = null;
-      }
-
-      if (tiles[i].value == 0 || merge != null) {
-        final AnimatedTile(:int x, :int y) = tiles[i];
-        var AnimatedTile(:int value) = target;
-
-        /// Animate the tile at position t.
-        target.moveTo(controller, x, y);
-
-        /// If we are *confirmed* to be merging two tiles, then:
-        if (merge != null) {
-          /// Increase the resulting value of the target,
-          value *= 2;
-
-          /// Do some animations.
-          merge
-            ..moveTo(controller, x, y)
-            ..bounce(controller)
-            ..changeNumber(controller, value)
-
-            /// Change the value of the merged tile,
-            ..value = 0;
-
-          /// And the last animation
-          target.changeNumber(controller, 0);
-
-          _addScore(value);
-        }
-
-        /// Update their values after the update.
-        /// Sequence is important here, because there are cases when target == tiles[i].
-        target.value = 0;
-        tiles[i].value = value;
-      }
-    }
   }
 
   void _addScore(final int value) {

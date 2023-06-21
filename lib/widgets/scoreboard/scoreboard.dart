@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
+import "package:twenty_fourty_eight/widgets/scoreboard/buttons/scoreboard_button.dart";
 import "package:twenty_fourty_eight/widgets/scoreboard/displays/added_score_popup.dart";
 import "package:twenty_fourty_eight/widgets/scoreboard/displays/current_score.dart";
 
@@ -28,19 +29,14 @@ class Scoreboard extends StatelessWidget {
                 )
               ],
             ),
-            MaterialButton(
-              minWidth: width,
-              color: CustomColors.tile16,
-              onPressed: () {
-                context.read<GameState>().openMenu();
-              },
-              child: const Text(
-                "MENU",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+            ScoreboardButton(
+              text: "MENU",
+              onPressed: () => context.read<GameState>().openMenu(),
+            ),
+            const SizedBox(height: Sizes.tileSize * 0.05),
+            ScoreboardButton(
+              text: "BACKTRACK",
+              onPressed: () => context.read<GameState>().backtrack(),
             )
           ],
         ),

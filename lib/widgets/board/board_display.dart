@@ -19,7 +19,7 @@ class BoardDisplay extends StatelessWidget {
     final double width = Sizes.tileSize * gridX;
 
     return Container(
-      padding: EdgeInsets.all(GameTile.tileMarginRatio * Sizes.tileSize / 2),
+      padding: const EdgeInsets.all(GameTile.tileMarginRatio * Sizes.tileSize / 2),
       decoration: roundRadius.copyWith(color: CustomColors.darkBrown),
       child: SizedBox(
         width: width,

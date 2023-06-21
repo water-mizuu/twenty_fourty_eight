@@ -1,3 +1,5 @@
+import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
+import "package:twenty_fourty_eight/data_structures/move_action.dart";
 import "package:twenty_fourty_eight/shared/typedef.dart";
 
 extension List2Extension<E> on List2<E> {
@@ -14,4 +16,8 @@ extension IterableListExtension<E> on Iterable<List<E>> {
       yield row.reversed.toList();
     }
   }
+}
+
+extension GridAtExtension on List2<AnimatedTile> {
+  AnimatedTile at(final Tile tile) => this[tile.y][tile.x];
 }
