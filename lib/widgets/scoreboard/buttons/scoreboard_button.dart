@@ -1,8 +1,5 @@
 import "package:flutter/material.dart";
-import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
-import "package:twenty_fourty_eight/state/game_state.dart";
-import "package:twenty_fourty_eight/widgets/scoreboard/scoreboard.dart";
 
 class ScoreboardButton extends StatelessWidget {
   const ScoreboardButton({
@@ -16,11 +13,8 @@ class ScoreboardButton extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) => MaterialButton(
-        minWidth: Scoreboard.width,
         color: CustomColors.tile16,
-        onPressed: () {
-          context.read<GameState>().backtrack();
-        },
+        onPressed: onPressed,
         child: Text(
           text,
           style: const TextStyle(

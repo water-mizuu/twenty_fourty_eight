@@ -1,3 +1,5 @@
+import "dart:math";
+
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
@@ -11,13 +13,11 @@ class TopRow extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
-    final int gridX = context.select((final GameState state) => state.gridX);
+    final int gridX = max(3, context.select((final GameState state) => state.gridX));
 
-    const double height = Sizes.tileSize * (1 + GameTile.tileMarginRatio);
     final double width = Sizes.tileSize * (gridX + GameTile.tileMarginRatio);
 
     return SizedBox(
-      height: height,
       width: width,
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

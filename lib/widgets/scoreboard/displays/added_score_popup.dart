@@ -12,6 +12,8 @@ class AddedScorePopup extends StatefulWidget {
 }
 
 class _AddedScorePopupState extends State<AddedScorePopup> with SingleTickerProviderStateMixin {
+  static const double aspectRatioWidthToHeight = 2 / 1;
+
   late Animation<double> translateFactorY;
   late Animation<double> opacity;
   late AnimationController animationController;
@@ -41,40 +43,43 @@ class _AddedScorePopupState extends State<AddedScorePopup> with SingleTickerProv
         resetAnimations();
         startAnimation();
 
-        return LayoutBuilder(
-          builder: (final BuildContext context, final BoxConstraints constraints) {
-            final Size(:double width, :double height) = constraints.constrain(Size.infinite);
-            final double translateX = (random.nextDouble() - 0.5) * 0.25 * width;
+        return AspectRatio(
+          aspectRatio: aspectRatioWidthToHeight,
+          child: LayoutBuilder(
+            builder: (final BuildContext context, final BoxConstraints constraints) {
+              final Size(:double width, :double height) = constraints.constrain(Size.infinite);
+              final double translateX = (random.nextDouble() - 0.5) * 0.25 * width;
 
-            return SizedBox(
-              width: width,
-              child: Center(
-                child: AnimatedBuilder(
-                  animation: animationController,
-                  builder: (final BuildContext context, final Widget? child) {
-                    final Animation<double>(value: double opacity) = this.opacity;
-                    final Animation<double>(value: double translateFactorY) = this.translateFactorY;
+              return SizedBox(
+                width: width,
+                child: Center(
+                  child: AnimatedBuilder(
+                    animation: animationController,
+                    builder: (final BuildContext context, final Widget? child) {
+                      final Animation<double>(value: double opacity) = this.opacity;
+                      final Animation<double>(value: double translateFactorY) = this.translateFactorY;
 
-                    return Transform.translate(
-                      offset: Offset(translateX, height * translateFactorY),
-                      child: Opacity(
-                        opacity: opacity,
-                        child: child,
+                      return Transform.translate(
+                        offset: Offset(translateX, height * translateFactorY),
+                        child: Opacity(
+                          opacity: opacity,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Text(
+                      value > 0 ? "+${value.abs()}" : "-${value.abs()}",
+                      style: const TextStyle(
+                        color: CustomColors.grayText,
+                        fontSize: 24.0,
+                        fontWeight: FontWeight.w700,
                       ),
-                    );
-                  },
-                  child: Text(
-                    value > 0 ? "+${value.abs()}" : "-${value.abs()}",
-                    style: const TextStyle(
-                      color: CustomColors.grayText,
-                      fontSize: 24.0,
-                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       case _:
         return const SizedBox();

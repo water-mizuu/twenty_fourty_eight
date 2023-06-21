@@ -38,12 +38,12 @@ class ActiveTile extends StatelessWidget {
 
     return Transform.scale(
       scale: scale,
-      child: AspectRatio(
-        aspectRatio: 1.0,
-        child: Container(
-          height: Sizes.tileSize,
-          margin: const EdgeInsets.all(Sizes.tileSize * GameTile.tileMarginRatio),
-          decoration: roundRadius.copyWith(color: backgroundColor),
+      child: Container(
+        height: Sizes.tileSize,
+        margin: const EdgeInsets.all(Sizes.tileSize * GameTile.tileMarginRatio),
+        decoration: roundRadius.copyWith(color: backgroundColor),
+        child: AspectRatio(
+          aspectRatio: 1.0,
           child: Center(
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: Sizes.tileSize * GameTile.textMarginRatio),
