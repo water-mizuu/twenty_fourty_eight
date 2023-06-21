@@ -13,7 +13,7 @@ class TopRow extends StatelessWidget {
   Widget build(final BuildContext context) {
     final int gridX = context.select((final GameState state) => state.gridX);
 
-    final double height = Sizes.tileSize * (1 + GameTile.tileMarginRatio);
+    const double height = Sizes.tileSize * (1 + GameTile.tileMarginRatio);
     final double width = Sizes.tileSize * (gridX + GameTile.tileMarginRatio);
 
     return SizedBox(
@@ -23,10 +23,7 @@ class TopRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          AspectRatio(
-            aspectRatio: 1,
-            child: ActiveTile.dummy(animatedValue: 2048),
-          ),
+          ActiveTile.dummy(animatedValue: 2048),
           Scoreboard(),
         ],
       ),

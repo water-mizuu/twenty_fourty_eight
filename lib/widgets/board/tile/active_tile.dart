@@ -1,6 +1,5 @@
 import "package:flutter/material.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
-import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/widgets/board/tile/game_tile.dart";
 
 class ActiveTile extends StatelessWidget {
@@ -9,6 +8,7 @@ class ActiveTile extends StatelessWidget {
     required this.scale,
     super.key,
   });
+
   const ActiveTile.dummy({
     required this.animatedValue,
     super.key,
@@ -17,42 +17,7 @@ class ActiveTile extends StatelessWidget {
   final int animatedValue;
   final double scale;
 
-  @override
-  Widget build(final BuildContext context) {
-    final (Color backgroundColor, Color foregroundColor) = tileColor(animatedValue);
-
-    return Transform.scale(
-      scale: scale,
-      child: LayoutBuilder(
-        builder: (final BuildContext context, final BoxConstraints constraints) {
-          final double parentHeight = constraints.constrainHeight();
-
-          return Container(
-            margin: EdgeInsets.all(parentHeight * GameTile.tileMarginRatio),
-            decoration: roundRadius.copyWith(color: backgroundColor),
-            child: Center(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: parentHeight * GameTile.textMarginRatio),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    "$animatedValue",
-                    style: TextStyle(
-                      color: foregroundColor,
-                      fontSize: parentHeight * 45.percent,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  static (Color, Color) tileColor(final int number) => switch (number) {
+  static (Color, Color) _tileColor(final int number) => switch (number) {
         2 => const (CustomColors.tile2, CustomColors.grayText),
         4 => const (CustomColors.tile4, CustomColors.grayText),
         8 => const (CustomColors.tile8, CustomColors.whiteText),
@@ -66,4 +31,37 @@ class ActiveTile extends StatelessWidget {
         2048 => const (CustomColors.tile2048, CustomColors.whiteText),
         _ => const (CustomColors.tileSuper, CustomColors.whiteText),
       };
+
+  @override
+  Widget build(final BuildContext context) {
+    final (Color backgroundColor, Color foregroundColor) = _tileColor(animatedValue);
+
+    return Transform.scale(
+      scale: scale,
+      child: AspectRatio(
+        aspectRatio: 1.0,
+        child: Container(
+          height: Sizes.tileSize,
+          margin: const EdgeInsets.all(Sizes.tileSize * GameTile.tileMarginRatio),
+          decoration: roundRadius.copyWith(color: backgroundColor),
+          child: Center(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: Sizes.tileSize * GameTile.textMarginRatio),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  "$animatedValue",
+                  style: TextStyle(
+                    color: foregroundColor,
+                    fontSize: Sizes.tileSize * 0.45,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

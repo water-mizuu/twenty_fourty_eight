@@ -3,7 +3,6 @@ import "dart:ui";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
-import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
 import "package:twenty_fourty_eight/widgets/game_over/game_over_screen.dart";
 
@@ -30,7 +29,7 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
 
-    controller = AnimationController(vsync: this, duration: 1000.milliseconds);
+    controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
 
     if (const Interval(0.00, 1.00, curve: Curves.ease) case final Curve curve) {
       blurRadius = CurvedAnimation(parent: controller, curve: curve) //
