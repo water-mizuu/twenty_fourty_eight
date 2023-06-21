@@ -18,14 +18,14 @@ class ActiveTile extends StatelessWidget {
   final double scale;
 
   @override
-  Widget build(BuildContext context) {
-    var (Color backgroundColor, Color foregroundColor) = tileColor(animatedValue);
+  Widget build(final BuildContext context) {
+    final (Color backgroundColor, Color foregroundColor) = tileColor(animatedValue);
 
     return Transform.scale(
       scale: scale,
       child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          double parentHeight = constraints.constrainHeight();
+        builder: (final BuildContext context, final BoxConstraints constraints) {
+          final double parentHeight = constraints.constrainHeight();
 
           return Container(
             margin: EdgeInsets.all(parentHeight * GameTile.tileMarginRatio),
@@ -52,7 +52,7 @@ class ActiveTile extends StatelessWidget {
     );
   }
 
-  static (Color, Color) tileColor(int number) => switch (number) {
+  static (Color, Color) tileColor(final int number) => switch (number) {
         2 => const (CustomColors.tile2, CustomColors.grayText),
         4 => const (CustomColors.tile4, CustomColors.grayText),
         8 => const (CustomColors.tile8, CustomColors.whiteText),

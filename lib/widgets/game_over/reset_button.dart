@@ -11,19 +11,17 @@ class ResetButton extends StatelessWidget {
   final double buttonOpacity;
 
   @override
-  Widget build(BuildContext context) {
-    return Opacity(
-      opacity: buttonOpacity,
-      child: MaterialButton(
-        color: const Color.fromARGB(255, 60, 58, 51),
-        onPressed: () => context.read<GameState>().reset(),
-        child: const Text(
-          "Try Again",
-          style: TextStyle(
-            color: Colors.white,
+  Widget build(final BuildContext context) => Opacity(
+        opacity: buttonOpacity,
+        child: MaterialButton(
+          color: const Color.fromARGB(255, 60, 58, 51),
+          onPressed: () => context.read<GameState>().reset(),
+          child: const Text(
+            "Try Again",
+            style: TextStyle(
+              color: Colors.white,
+            ),
           ),
         ),
-      ),
-    );
-  }
+      );
 }

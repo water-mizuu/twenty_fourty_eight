@@ -32,24 +32,24 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
 
     controller = AnimationController(vsync: this, duration: 1000.milliseconds);
 
-    if (const Interval(0.00, 1.00, curve: Curves.ease) case Curve curve) {
+    if (const Interval(0.00, 1.00, curve: Curves.ease) case final Curve curve) {
       blurRadius = CurvedAnimation(parent: controller, curve: curve) //
           .drive(Tween<double>(begin: 0.0, end: 4.0));
     }
 
-    if (const Interval(0.00, 0.50, curve: Curves.ease) case Curve curve) {
+    if (const Interval(0.00, 0.50, curve: Curves.ease) case final Curve curve) {
       backgroundOpacity = CurvedAnimation(parent: controller, curve: curve) //
           .drive(Tween<double>(begin: 0.0, end: 1.0));
     }
 
-    if (const Interval(0.50, 0.75, curve: Curves.ease) case Curve curve) {
+    if (const Interval(0.50, 0.75, curve: Curves.ease) case final Curve curve) {
       textMoveDown = CurvedAnimation(parent: controller, curve: curve) //
           .drive(Tween<double>(begin: 0.95, end: 1.00));
       textOpacity = CurvedAnimation(parent: controller, curve: curve) //
           .drive(IntTween(begin: 0, end: 255));
     }
 
-    if (const Interval(0.75, 1.00, curve: Curves.ease) case Curve curve) {
+    if (const Interval(0.75, 1.00, curve: Curves.ease) case final Curve curve) {
       buttonOpacity = CurvedAnimation(parent: controller, curve: curve) //
           .drive(Tween<double>(begin: 0.0, end: 1.0));
     }
@@ -65,21 +65,22 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (context.read<GameState>().canSwipeAnywhere()) {
+  Widget build(final BuildContext context) {
+    if (context.select((final GameState state) => state.canSwipeAnywhere())) {
       return const SizedBox();
     } else {
-      controller.reset();
-      controller.forward();
+      controller
+        ..reset()
+        ..forward();
 
       return AnimatedBuilder(
         animation: controller,
-        builder: (BuildContext context, Widget? child) {
-          var Animation<double>(value: double backgroundOpacity) = this.backgroundOpacity;
-          var Animation<double>(value: double blurRadius) = this.blurRadius;
-          var Animation<double>(value: double textMoveDown) = this.textMoveDown;
-          var Animation<int>(value: int textOpacity) = this.textOpacity;
-          var Animation<double>(value: double buttonOpacity) = this.buttonOpacity;
+        builder: (final BuildContext context, final Widget? child) {
+          final Animation<double>(value: double backgroundOpacity) = this.backgroundOpacity;
+          final Animation<double>(value: double blurRadius) = this.blurRadius;
+          final Animation<double>(value: double textMoveDown) = this.textMoveDown;
+          final Animation<int>(value: int textOpacity) = this.textOpacity;
+          final Animation<double>(value: double buttonOpacity) = this.buttonOpacity;
 
           return Opacity(
             opacity: backgroundOpacity,

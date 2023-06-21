@@ -23,7 +23,7 @@ extension List2Extension<E> on List2<E> {
 
 extension IterableListExtension<E> on Iterable<List<E>> {
   Iterable<List<E>> get reversedRows sync* {
-    for (List<E> row in this) {
+    for (final List<E> row in this) {
       yield row.reversed.toList();
     }
   }

@@ -13,12 +13,10 @@ class BackgroundTile extends StatelessWidget {
   final int x;
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
-      return Container(
-        margin: EdgeInsets.all(constraints.constrainHeight() * GameTile.tileMarginRatio),
-        decoration: roundRadius.copyWith(color: CustomColors.lightBrown),
+  Widget build(final BuildContext context) => LayoutBuilder(
+        builder: (final BuildContext context, final BoxConstraints constraints) => Container(
+          margin: EdgeInsets.all(constraints.constrainHeight() * GameTile.tileMarginRatio),
+          decoration: roundRadius.copyWith(color: CustomColors.lightBrown),
+        ),
       );
-    });
-  }
 }

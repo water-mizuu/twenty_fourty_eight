@@ -25,51 +25,47 @@ class _MenuState extends State<Menu> {
   }
 
   Widget option({
-    required String label,
-    required void Function(double) callback,
-    required double value,
-    required double max,
-    required double gridWidth,
-    required double height,
-    double min = 0.0,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: height * 0.05,
-            color: CustomColors.brownText,
-            fontWeight: FontWeight.w500,
+    required final String label,
+    required final void Function(double) callback,
+    required final double value,
+    required final double max,
+    required final double gridWidth,
+    required final double height,
+    final double min = 0.0,
+  }) =>
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: height * 0.05,
+              color: CustomColors.brownText,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-        Slider(
-          value: value,
-          min: min,
-          max: max,
-          divisions: (max - min).floor(),
-          activeColor: CustomColors.brownText,
-          label: value.floor().toString(),
-          onChanged: callback,
-        ),
-      ],
-    );
-  }
+          Slider(
+            value: value,
+            min: min,
+            max: max,
+            divisions: (max - min).floor(),
+            activeColor: CustomColors.brownText,
+            label: value.floor().toString(),
+            onChanged: callback,
+          ),
+        ],
+      );
 
   void _save() {
-    GameState state = context.read<GameState>();
-
-    if (_ySliderValue.floor() != state.gridY || _xSliderValue.floor() != state.gridX) {
-      state.changeDimensions(_ySliderValue.floor(), _xSliderValue.floor());
-    }
-    state.closeMenu();
+    context.read<GameState>()
+      ..changeDimensions(_ySliderValue.floor(), _xSliderValue.floor())
+      ..closeMenu();
   }
 
   @override
-  Widget build(BuildContext context) {
-    double boxWidth = Sizes.tileSize * 5;
-    double horizontalMargin = boxWidth * 0.035;
+  Widget build(final BuildContext context) {
+    const double boxWidth = Sizes.tileSize * 5;
+    const double horizontalMargin = boxWidth * 0.035;
 
     return ColoredBox(
       color: const Color.fromARGB(128, 175, 175, 175),
@@ -95,7 +91,7 @@ class _MenuState extends State<Menu> {
                   ),
                   const SizedBox(height: 32),
                   Container(
-                    margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
+                    margin: const EdgeInsets.symmetric(horizontal: horizontalMargin),
                     child: Row(
                       children: <Widget>[
                         const Column(
@@ -120,7 +116,7 @@ class _MenuState extends State<Menu> {
                             ),
                           ],
                         ),
-                        SizedBox(width: horizontalMargin),
+                        const SizedBox(width: horizontalMargin),
                         Expanded(
                           child: SliderTheme(
                             data: SliderThemeData(trackShape: CustomTrackShape()),
@@ -133,7 +129,7 @@ class _MenuState extends State<Menu> {
                                   divisions: 8.0.floor(),
                                   activeColor: CustomColors.brownText,
                                   label: _xSliderValue.floor().toString(),
-                                  onChanged: (double value) {
+                                  onChanged: (final double value) {
                                     if (value case >= 2.0 && <= 8.0) {
                                       setState(() {
                                         _xSliderValue = value;
@@ -148,7 +144,7 @@ class _MenuState extends State<Menu> {
                                   divisions: 8.0.floor(),
                                   activeColor: CustomColors.brownText,
                                   label: _ySliderValue.floor().toString(),
-                                  onChanged: (double value) {
+                                  onChanged: (final double value) {
                                     if (value case >= 2.0 && <= 8.0) {
                                       setState(() {
                                         _ySliderValue = value;
@@ -193,16 +189,16 @@ class _MenuState extends State<Menu> {
 class CustomTrackShape extends RoundedRectSliderTrackShape {
   @override
   Rect getPreferredRect({
-    required RenderBox parentBox,
-    required SliderThemeData sliderTheme,
-    Offset offset = Offset.zero,
-    bool isEnabled = false,
-    bool isDiscrete = false,
+    required final RenderBox parentBox,
+    required final SliderThemeData sliderTheme,
+    final Offset offset = Offset.zero,
+    final bool isEnabled = false,
+    final bool isDiscrete = false,
   }) {
-    double? trackHeight = sliderTheme.trackHeight;
-    double trackLeft = offset.dx;
-    double trackTop = offset.dy + (parentBox.size.height - trackHeight!) / 2;
-    double trackWidth = parentBox.size.width;
+    final double? trackHeight = sliderTheme.trackHeight;
+    final double trackLeft = offset.dx;
+    final double trackTop = offset.dy + (parentBox.size.height - trackHeight!) / 2;
+    final double trackWidth = parentBox.size.width;
     return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
   }
 }

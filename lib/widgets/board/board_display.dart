@@ -11,12 +11,12 @@ class BoardDisplay extends StatelessWidget {
   const BoardDisplay({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    int gridY = context.select((GameState state) => state.gridY);
-    int gridX = context.select((GameState state) => state.gridX);
+  Widget build(final BuildContext context) {
+    final int gridY = context.select((final GameState state) => state.gridY);
+    final int gridX = context.select((final GameState state) => state.gridX);
 
-    double height = Sizes.tileSize * gridY;
-    double width = Sizes.tileSize * gridX;
+    final double height = Sizes.tileSize * gridY;
+    final double width = Sizes.tileSize * gridX;
 
     return Container(
       padding: EdgeInsets.all(GameTile.tileMarginRatio * Sizes.tileSize / 2),

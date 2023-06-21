@@ -15,23 +15,23 @@ class GameOverScreen extends StatelessWidget {
   final double buttonOpacity;
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
-      double height = constraints.constrainHeight();
+  Widget build(final BuildContext context) => LayoutBuilder(
+        builder: (final BuildContext context, final BoxConstraints constraints) {
+          final double height = constraints.constrainHeight();
 
-      return Stack(
-        alignment: Alignment.topCenter,
-        children: <Widget>[
-          Positioned(
-            top: ((height - 128) / 2) * textMoveDown,
-            child: GameOverMessage(textOpacity: textOpacity),
-          ),
-          Positioned(
-            top: height / 2,
-            child: ResetButton(buttonOpacity: buttonOpacity),
-          ),
-        ],
+          return Stack(
+            alignment: Alignment.topCenter,
+            children: <Widget>[
+              Positioned(
+                top: ((height - 128) / 2) * textMoveDown,
+                child: GameOverMessage(textOpacity: textOpacity),
+              ),
+              Positioned(
+                top: height / 2,
+                child: ResetButton(buttonOpacity: buttonOpacity),
+              ),
+            ],
+          );
+        },
       );
-    });
-  }
 }

@@ -21,18 +21,16 @@ class _BoardGameState extends State<BoardGame> with SingleTickerProviderStateMix
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: context.select((GameState state) => state.controller),
-      builder: (BuildContext context, _) {
-        return Stack(
+  Widget build(final BuildContext context) => AnimatedBuilder(
+        animation: context.select((final GameState state) => state.controller),
+        builder: (final BuildContext context, final _) => Stack(
           children: <Widget>[
-            for (var AnimatedTile(
+            for (final AnimatedTile(
                   animatedX: Animation<double>(value: double animatedX),
                   animatedY: Animation<double>(value: double animatedY),
                   animatedValue: Animation<int>(value: int animatedValue),
                   scale: Animation<double>(value: double scale),
-                ) in context.select((GameState state) => state.renderTiles))
+                ) in context.select((final GameState state) => state.renderTiles))
               if (animatedValue != 0) //
                 Positioned(
                   left: animatedX * Sizes.tileSize,
@@ -45,8 +43,6 @@ class _BoardGameState extends State<BoardGame> with SingleTickerProviderStateMix
                   ),
                 ),
           ],
-        );
-      },
-    );
-  }
+        ),
+      );
 }

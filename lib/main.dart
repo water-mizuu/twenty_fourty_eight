@@ -14,10 +14,13 @@ void main() async {
     await WindowManager.instance.setMinimumSize(const Size(400, 500));
     // await WindowManager.instance.setSize(const Size(400, 650));
   }
-  assert(() {
-    isDebug = true;
+  assert(
+    () {
+      isDebug = true;
 
-    return true;
-  }(), "Should never fail");
+      return true;
+    }(),
+    "Should never fail",
+  );
   runApp(const Application());
 }

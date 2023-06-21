@@ -9,16 +9,14 @@ class GameOverMessage extends StatelessWidget {
   final int textOpacity;
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        "Game Over!",
-        style: TextStyle(
-          color: Color.fromARGB(textOpacity, 119, 110, 101),
-          fontSize: 36,
-          fontWeight: FontWeight.w800,
+  Widget build(final BuildContext context) => Center(
+        child: Text(
+          "Game Over!",
+          style: TextStyle(
+            color: Color.fromARGB(textOpacity, 119, 110, 101),
+            fontSize: 36,
+            fontWeight: FontWeight.w800,
+          ),
         ),
-      ),
-    );
-  }
+      );
 }

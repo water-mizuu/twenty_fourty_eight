@@ -9,20 +9,18 @@ class BoardBackground extends StatelessWidget {
   const BoardBackground({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        for (var AnimatedTile(:int y, :int x) in context.select((GameState state) => state.flattenedGrid)) //
-          Positioned(
-            top: y * Sizes.tileSize,
-            left: x * Sizes.tileSize,
-            width: Sizes.tileSize,
-            height: Sizes.tileSize,
-            child: Center(
-              child: BackgroundTile(y: y, x: x),
+  Widget build(final BuildContext context) => Stack(
+        children: <Widget>[
+          for (final AnimatedTile(:int y, :int x) in context.select((final GameState state) => state.flattenedGrid)) //
+            Positioned(
+              top: y * Sizes.tileSize,
+              left: x * Sizes.tileSize,
+              width: Sizes.tileSize,
+              height: Sizes.tileSize,
+              child: Center(
+                child: BackgroundTile(y: y, x: x),
+              ),
             ),
-          ),
-      ],
-    );
-  }
+        ],
+      );
 }

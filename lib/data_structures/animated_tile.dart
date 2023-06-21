@@ -1,6 +1,12 @@
 import "package:flutter/animation.dart";
 
 class AnimatedTile {
+  AnimatedTile(final ({int y, int x}) index, this.value)
+      : y = index.y,
+        x = index.x {
+    resetAnimations();
+  }
+
   static const Curve animationCurve = Curves.ease;
   static const double split = 4 / 9;
 
@@ -13,12 +19,6 @@ class AnimatedTile {
   late Animation<int> animatedValue;
   late Animation<double> scale;
 
-  AnimatedTile(({int y, int x}) index, this.value)
-      : y = index.y,
-        x = index.x {
-    resetAnimations();
-  }
-
   void resetAnimations() {
     animatedX = AlwaysStoppedAnimation<double>(x.toDouble());
     animatedY = AlwaysStoppedAnimation<double>(y.toDouble());
@@ -26,7 +26,7 @@ class AnimatedTile {
     scale = const AlwaysStoppedAnimation<double>(1);
   }
 
-  void moveTo(Animation<double> parent, int x, int y) {
+  void moveTo(final Animation<double> parent, final int x, final int y) {
     animatedX = CurvedAnimation(parent: parent, curve: const Interval(0, split, curve: animationCurve))
         .drive(Tween<double>(begin: this.x.toDouble(), end: x.toDouble()));
 
@@ -34,7 +34,7 @@ class AnimatedTile {
         .drive(Tween<double>(begin: this.y.toDouble(), end: y.toDouble()));
   }
 
-  void bounce(Animation<double> parent) {
+  void bounce(final Animation<double> parent) {
     scale = CurvedAnimation(parent: parent, curve: const Interval(split, 1, curve: animationCurve)).drive(
       TweenSequence<double>(<TweenSequenceItem<double>>[
         TweenSequenceItem<double>(tween: Tween<double>(begin: 1, end: 1.2), weight: 0.5),
@@ -43,12 +43,12 @@ class AnimatedTile {
     );
   }
 
-  void appear(Animation<double> parent) {
+  void appear(final Animation<double> parent) {
     scale = CurvedAnimation(parent: parent, curve: const Interval(split, 1, curve: animationCurve))
         .drive(Tween<double>(begin: 0.0, end: 1.0));
   }
 
-  void changeNumber(Animation<double> parent, int newValue) {
+  void changeNumber(final Animation<double> parent, final int newValue) {
     animatedValue = CurvedAnimation(parent: parent, curve: const Interval(split, 1, curve: animationCurve)).drive(
       TweenSequence<int>(<TweenSequenceItem<int>>[
         TweenSequenceItem<int>(tween: ConstantTween<int>(value), weight: 0.01),
