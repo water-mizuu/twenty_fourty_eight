@@ -2,10 +2,12 @@ import "dart:collection";
 import "dart:io";
 import "dart:math" as math;
 
-import "package:flutter/material.dart";
+import "package:flutter/material.dart" hide Action;
 import "package:flutter/services.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
 import "package:twenty_fourty_eight/data_structures/box.dart";
+import "package:twenty_fourty_eight/data_structures/move_action.dart";
+import "package:twenty_fourty_eight/enum/direction.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/shared/typedef.dart";
@@ -23,13 +25,14 @@ class GameState with ChangeNotifier {
         _scoreBuffer = 0,
         _actionIsUnlocked = true,
         _toAdd = Queue<AnimatedTile>(),
-        _persistingData = <(int, int), (int, String)>{},
+        _persistingData = <(int, int), (int, String, Queue<MoveAction>)>{},
         _grid = <List<AnimatedTile>>[
           for (int y = 0; y < gridY; ++y)
             <AnimatedTile>[
               for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
             ],
-        ];
+        ],
+        _actionHistory = Queue<MoveAction>();
 
   static const int defaultGridY = 4;
   static const int defaultGridX = 4;
@@ -56,11 +59,12 @@ class GameState with ChangeNotifier {
 
   final Queue<AnimatedTile> _toAdd;
   // Stores the (score, runLengthEncoding)s of the saved grids.
-  final Map<(int, int), (int, String)> _persistingData;
+  final Map<(int, int), (int, String, Queue<MoveAction>)> _persistingData;
 
   List2<AnimatedTile> _grid;
   bool _actionIsUnlocked;
   int _scoreBuffer;
+  Queue<MoveAction> _actionHistory;
 
   Iterable<AnimatedTile> get flattenedGrid => _grid.expand((final List<AnimatedTile> r) => r);
   Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_toAdd);
@@ -137,14 +141,6 @@ class GameState with ChangeNotifier {
 
   bool canSwipeAnywhere() => canSwipeUp() || canSwipeDown() || canSwipeLeft() || canSwipeRight();
 
-  void swipeUp() => _swipe(() => _grid.columns.forEach(_mergeTiles));
-
-  void swipeDown() => _swipe(() => _grid.columns.reversedRows.forEach(_mergeTiles));
-
-  void swipeLeft() => _swipe(() => _grid.forEach(_mergeTiles));
-
-  void swipeRight() => _swipe(() => _grid.reversedRows.forEach(_mergeTiles));
-
   static int randomTileNumber() => switch (random.nextDouble()) {
         <= 0.125 => 4,
         _ => 2,
@@ -211,19 +207,19 @@ class GameState with ChangeNotifier {
     switch (event.logicalKey) {
       /// UP
       case LogicalKeyboardKey.arrowUp when canSwipeUp():
-        swipeUp();
+        _swipe(Direction.up);
 
       /// DOWN
       case LogicalKeyboardKey.arrowDown when canSwipeDown():
-        swipeDown();
+        _swipe(Direction.down);
 
       /// LEFT
       case LogicalKeyboardKey.arrowLeft when canSwipeLeft():
-        swipeLeft();
+        _swipe(Direction.left);
 
       /// RIGHT
       case LogicalKeyboardKey.arrowRight when canSwipeRight():
-        swipeRight();
+        _swipe(Direction.right);
 
       /// DEBUGS
       case LogicalKeyboardKey.numpad0 when isDebug:
@@ -239,11 +235,11 @@ class GameState with ChangeNotifier {
     switch (details.velocity.pixelsPerSecond.dy) {
       /// Swipe Up
       case < -200 when canSwipeUp():
-        swipeUp();
+        _swipe(Direction.up);
 
       /// Swipe Down
       case > 200 when canSwipeDown():
-        swipeDown();
+        _swipe(Direction.down);
     }
   }
 
@@ -251,29 +247,31 @@ class GameState with ChangeNotifier {
     switch (details.velocity.pixelsPerSecond.dx) {
       /// Swipe Left
       case < -200 when canSwipeLeft():
-        swipeLeft();
+        _swipe(Direction.left);
 
       /// Swipe Right
       case > 200 when canSwipeRight():
-        swipeRight();
+        _swipe(Direction.right);
     }
   }
 
   void _saveGrid() {
-    _persistingData[(gridY, gridX)] = (score, _runLengthEncoding(_grid));
+    _persistingData[(gridY, gridX)] = (score, _runLengthEncoding(_grid), _actionHistory);
   }
 
   void _loadGrid() {
     switch (_persistingData[(gridY, gridX)]) {
-      case (final int score, final String encoding):
+      case (final int score, final String encoding, final Queue<MoveAction> actionHistory):
         this.score = score;
         this._grid = _parseRunLengthEncoding(encoding);
+        this._actionHistory = actionHistory;
       case null:
         this.score = 0;
         this._grid = <List<AnimatedTile>>[
           for (int y = 0; y < gridY; ++y) //
             <AnimatedTile>[for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0)]
         ];
+        this._actionHistory = Queue<MoveAction>();
 
         for (final AnimatedTile tile in (flattenedGrid.toList()..shuffle()).take(2)) {
           tile.value = randomTileNumber();
@@ -310,13 +308,22 @@ class GameState with ChangeNotifier {
     _toAdd.add(AnimatedTile((y: y, x: x), chosen)..appear(controller));
   }
 
-  void _swipe(final void Function() action) {
+  void _swipe(final Direction direction) {
     /// If the swipe actions are locked, then we ignore it.
     if (!_actionIsUnlocked) {
       return;
     }
 
-    action();
+    switch (direction) {
+      case Direction.up:
+        _grid.columns.forEach(_mergeTiles);
+      case Direction.down:
+        _grid.columns.reversedRows.forEach(_mergeTiles);
+      case Direction.left:
+        _grid.forEach(_mergeTiles);
+      case Direction.right:
+        _grid.reversedRows.forEach(_mergeTiles);
+    }
     _addNewTile();
     _actionIsUnlocked = false;
     controller.forward(from: 0);
