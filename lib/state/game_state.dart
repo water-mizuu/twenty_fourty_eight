@@ -70,7 +70,7 @@ class GameState with ChangeNotifier {
   Queue<MoveAction> _actionHistory;
   int _backtrackCount;
 
-  Iterable<AnimatedTile> get flattenedGrid => _grid.expand((final List<AnimatedTile> r) => r);
+  Iterable<AnimatedTile> get flattenedGrid => _grid.expand((List<AnimatedTile> r) => r);
   Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_ghost);
 
   ValueChanged<KeyEvent> get keyListener => _keyEventListener;
@@ -93,12 +93,12 @@ class GameState with ChangeNotifier {
     notifyListeners();
   }
 
-  void registerAnimationController(final TickerProvider provider) {
+  void registerAnimationController(TickerProvider provider) {
     controller = AnimationController(vsync: provider, duration: _animationDuration)
-      ..addStatusListener((final AnimationStatus status) {
+      ..addStatusListener((AnimationStatus status) {
         if (status case AnimationStatus.completed) {
           _ghost.clear();
-          for (final AnimatedTile tile in flattenedGrid) {
+          for (AnimatedTile tile in flattenedGrid) {
             tile.resetAnimations();
           }
 
@@ -120,7 +120,7 @@ class GameState with ChangeNotifier {
     notifyListeners();
   }
 
-  void changeDimensions(final int gridY, final int gridX) {
+  void changeDimensions(int gridY, int gridX) {
     _saveGrid();
 
     this.gridY = gridY;
@@ -132,7 +132,11 @@ class GameState with ChangeNotifier {
 
   bool canSwipeAnywhere() => _canSwipeUp() || _canSwipeDown() || _canSwipeLeft() || _canSwipeRight();
 
-  void backtrack() => _backtrack();
+  void backtrack() {
+    if (canBacktrack()) {
+      _backtrack();
+    }
+  }
 
   bool canBacktrack() => _actionHistory.isNotEmpty && _backtrackCount < _backtrackLimit;
 
@@ -141,7 +145,7 @@ class GameState with ChangeNotifier {
         _ => 2,
       };
 
-  static int powerOfTwo(final int gridY, final int y, final int x) => math.pow(2, y * gridY + x + 1).floor();
+  static int powerOfTwo(int gridY, int y, int x) => math.pow(2, y * gridY + x + 1).floor();
 
   bool _canSwipeLeft() => _grid.any(_canSwipe);
 
@@ -151,10 +155,10 @@ class GameState with ChangeNotifier {
 
   bool _canSwipeDown() => _grid.columns.reversedRows.any(_canSwipe);
 
-  static String _runLengthEncoding(final List2<AnimatedTile> tiles) {
-    final StringBuffer buffer = StringBuffer("${tiles[0].length}::");
+  static String _runLengthEncoding(List2<AnimatedTile> tiles) {
+    StringBuffer buffer = StringBuffer("${tiles[0].length}::");
 
-    final List<AnimatedTile> flattenedTiles = tiles.expand((final List<AnimatedTile> v) => v).toList();
+    List<AnimatedTile> flattenedTiles = tiles.expand((List<AnimatedTile> v) => v).toList();
     for (int i = 0; i < flattenedTiles.length; ++i) {
       int count = 1;
       while (i + 1 < flattenedTiles.length && flattenedTiles[i].value == flattenedTiles[i + 1].value) {
@@ -170,19 +174,19 @@ class GameState with ChangeNotifier {
     return buffer.toString();
   }
 
-  static List2<AnimatedTile> _parseRunLengthEncoding(final String encoding) {
-    final [String dimensionEncoding, String bodyEncoding] = encoding.split("::");
-    final int gridX = int.parse(dimensionEncoding);
+  static List2<AnimatedTile> _parseRunLengthEncoding(String encoding) {
+    var [String dimensionEncoding, String bodyEncoding] = encoding.split("::");
+    int gridX = int.parse(dimensionEncoding);
 
-    final List2<AnimatedTile> grid = <List<AnimatedTile>>[];
-    final List<String> splitEncoding = bodyEncoding.split(";");
+    List2<AnimatedTile> grid = <List<AnimatedTile>>[];
+    List<String> splitEncoding = bodyEncoding.split(";");
 
     int i = 0;
 
     List<AnimatedTile> buffer = <AnimatedTile>[];
-    for (final [int value, int count] in splitEncoding.map((final String v) => v.split(":").map(int.parse).toList())) {
+    for (var [int value, int count] in splitEncoding.map((String v) => v.split(":").map(int.parse).toList())) {
       for (int j = 0; j < count; ++j, ++i) {
-        final (int y, int x) = (i ~/ gridX, i % gridX);
+        var (int y, int x) = (i ~/ gridX, i % gridX);
 
         buffer.add(AnimatedTile((y: y, x: x), value));
         if (x == gridX - 1) {
@@ -195,7 +199,7 @@ class GameState with ChangeNotifier {
     return grid;
   }
 
-  static bool _collectionEqual(final List2<AnimatedTile> left, final List2<AnimatedTile> right) {
+  static bool _collectionEqual(List2<AnimatedTile> left, List2<AnimatedTile> right) {
     for (int y = 0; y < left.length && y < right.length; ++y) {
       for (int x = 0; x < left[y].length && x < right[y].length; ++x) {
         if (left[y][x].value != right[y][x].value) {
@@ -206,7 +210,7 @@ class GameState with ChangeNotifier {
     return true;
   }
 
-  void _keyEventListener(final KeyEvent event) {
+  void _keyEventListener(KeyEvent event) {
     if (event is KeyUpEvent) {
       return;
     }
@@ -242,7 +246,7 @@ class GameState with ChangeNotifier {
     }
   }
 
-  void _verticalDragListener(final DragEndDetails details) {
+  void _verticalDragListener(DragEndDetails details) {
     switch (details.velocity.pixelsPerSecond.dy) {
       /// Swipe Up
       case < -200 when _canSwipeUp():
@@ -254,7 +258,7 @@ class GameState with ChangeNotifier {
     }
   }
 
-  void _horizontalDragListener(final DragEndDetails details) {
+  void _horizontalDragListener(DragEndDetails details) {
     switch (details.velocity.pixelsPerSecond.dx) {
       /// Swipe Left
       case < -200 when _canSwipeLeft():
@@ -272,7 +276,7 @@ class GameState with ChangeNotifier {
 
   void _loadGrid() {
     switch (_persistingData[(gridY, gridX)]) {
-      case (final int score, final String encoding, final Queue<MoveAction> actionHistory):
+      case (int score, String encoding, Queue<MoveAction> actionHistory):
         this.score = score;
         this._grid = _parseRunLengthEncoding(encoding);
         this._actionHistory = actionHistory;
@@ -286,18 +290,18 @@ class GameState with ChangeNotifier {
         ];
         this._actionHistory = Queue<MoveAction>();
 
-        for (final AnimatedTile tile in (flattenedGrid.toList()..shuffle()).take(1)) {
+        for (AnimatedTile tile in (flattenedGrid.toList()..shuffle()).take(1)) {
           tile.value = randomTileNumber();
         }
     }
 
-    for (final AnimatedTile tile in flattenedGrid) {
+    for (AnimatedTile tile in flattenedGrid) {
       tile.resetAnimations();
     }
   }
 
   void _fail() {
-    for (final AnimatedTile(:int y, :int x) in flattenedGrid) {
+    for (var AnimatedTile(:int y, :int x) in flattenedGrid) {
       _grid[y][x].value = powerOfTwo(gridY, y, x);
     }
 
@@ -305,15 +309,15 @@ class GameState with ChangeNotifier {
   }
 
   Set<Tile> _addNewTile() {
-    final Set<Tile> newTiles = <Tile>{};
-    final List<AnimatedTile> empty = flattenedGrid //
-        .where((final AnimatedTile tile) => tile.value == 0)
+    Set<Tile> newTiles = <Tile>{};
+    List<AnimatedTile> empty = flattenedGrid //
+        .where((AnimatedTile tile) => tile.value == 0)
         .toList()
       ..shuffle();
 
     if (empty.isNotEmpty) {
-      final (AnimatedTile chosenTile && AnimatedTile(:int y, :int x)) = empty.first;
-      final int chosenValue = randomTileNumber();
+      var (AnimatedTile chosenTile && AnimatedTile(:int y, :int x)) = empty.first;
+      int chosenValue = randomTileNumber();
       chosenTile.value = chosenValue;
       newTiles.add((y: y, x: x, value: chosenValue));
 
@@ -323,7 +327,7 @@ class GameState with ChangeNotifier {
     return newTiles;
   }
 
-  void _swipe(final Direction direction) {
+  void _swipe(Direction direction) {
     /// If the swipe actions are locked, then we ignore it.
     if (!_actionIsUnlocked) {
       return;
@@ -334,21 +338,21 @@ class GameState with ChangeNotifier {
 
     _computation:
     {
-      final Iterable<List<AnimatedTile>> target = switch (direction) {
+      Iterable<List<AnimatedTile>> target = switch (direction) {
         Direction.up => _grid.columns,
         Direction.down => _grid.columns.reversedRows,
         Direction.left => _grid,
         Direction.right => _grid.reversedRows,
       };
 
-      final List<Merge> merges = <Merge>[];
-      for (final List<AnimatedTile> tiles in target) {
+      List<Merge> merges = <Merge>[];
+      for (List<AnimatedTile> tiles in target) {
         /// SWIPE LEFT ALGORITHM
         for (int i = 0; i < tiles.length; ++i) {
           /// We get the sublist from [i], disregarding zeros until the first nonzero.
-          final List<AnimatedTile> toCheck = tiles
+          List<AnimatedTile> toCheck = tiles
               .skip(i) //
-              .skipWhile((final AnimatedTile tile) => tile.value == 0)
+              .skipWhile((AnimatedTile tile) => tile.value == 0)
               .toList();
 
           /// If this happens, then the rest of the list from the right of [i]
@@ -357,19 +361,19 @@ class GameState with ChangeNotifier {
             break;
           }
 
-          final AnimatedTile target = toCheck.first;
+          AnimatedTile target = toCheck.first;
 
           AnimatedTile? merge = toCheck //
               .skip(1)
-              .where((final AnimatedTile tile) => tile.value != 0)
+              .where((AnimatedTile tile) => tile.value != 0)
               .firstOrNull;
 
-          if (merge case AnimatedTile(:final int value) when value != target.value) {
+          if (merge case AnimatedTile(:int value) when value != target.value) {
             merge = null;
           }
 
           if (tiles[i].value == 0 || merge != null) {
-            final AnimatedTile(:int x, :int y) = tiles[i];
+            var AnimatedTile(:int x, :int y) = tiles[i];
             int value = target.value;
 
             /// Animate the tile at position t.
@@ -413,7 +417,7 @@ class GameState with ChangeNotifier {
           }
         }
       }
-      final Set<Tile> added = _addNewTile();
+      Set<Tile> added = _addNewTile();
 
       score += _scoreBuffer;
       addedScore = Box<int>(_scoreBuffer);
@@ -428,7 +432,7 @@ class GameState with ChangeNotifier {
   }
 
   void _backtrack() {
-    if (!_actionIsUnlocked || !canBacktrack()) {
+    if (!_actionIsUnlocked || _actionHistory.isEmpty) {
       return;
     }
 
@@ -437,23 +441,19 @@ class GameState with ChangeNotifier {
 
     _computation:
     {
-      final MoveAction(
-        :List<Merge> merges,
-        :Set<Tile> added,
-        :int scoreDelta,
-      ) = _actionHistory.removeFirst();
+      var MoveAction(:List<Merge> merges, :Set<Tile> added, :int scoreDelta) = _actionHistory.removeFirst();
 
-      for (final Tile tile in added) {
+      for (Tile tile in added) {
         _ghost.add(AnimatedTile.from(tile)..disappear(controller));
         _grid.at(tile)
           ..animate(controller)
           ..value = 0;
       }
 
-      for (final Merge merge in merges.reversed) {
+      for (Merge merge in merges.reversed) {
         switch (merge) {
-          case (from: (final Tile target, null), to: final Tile destination):
-            final int value = destination.value;
+          case (from: (Tile target, null), to: Tile destination):
+            int value = destination.value;
 
             _ghost
               ..add(
@@ -475,8 +475,8 @@ class GameState with ChangeNotifier {
               ..animate(controller)
               ..value = value;
 
-          case (from: (final Tile target, final Tile merge), to: final Tile destination):
-            final int value = destination.value ~/ 2;
+          case (from: (Tile target, Tile merge), to: Tile destination):
+            int value = destination.value ~/ 2;
 
             _ghost
               ..add(
@@ -525,9 +525,9 @@ class GameState with ChangeNotifier {
   /// 1. the row has trailing zeros, i.e [0, 2, *, *]
   /// 2. the row has a merge, i.e [2, 2, *, *]
   /// ```
-  bool _canSwipe(final List<AnimatedTile> tiles) {
+  bool _canSwipe(List<AnimatedTile> tiles) {
     for (int i = 0; i < tiles.length; ++i) {
-      final AnimatedTile? query = tiles.skip(i + 1).skipWhile((final AnimatedTile t) => t.value == 0).firstOrNull;
+      AnimatedTile? query = tiles.skip(i + 1).skipWhile((AnimatedTile t) => t.value == 0).firstOrNull;
 
       if (query != null && (tiles[i].value == 0 || query.value == tiles[i].value)) {
         return true;
@@ -537,7 +537,7 @@ class GameState with ChangeNotifier {
     return false;
   }
 
-  void _addScore(final int value) {
+  void _addScore(int value) {
     _scoreBuffer += value;
   }
 }

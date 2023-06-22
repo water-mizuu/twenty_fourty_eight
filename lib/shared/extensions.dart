@@ -12,12 +12,12 @@ extension List2Extension<E> on List2<E> {
 
 extension IterableListExtension<E> on Iterable<List<E>> {
   Iterable<List<E>> get reversedRows sync* {
-    for (final List<E> row in this) {
+    for (List<E> row in this) {
       yield row.reversed.toList();
     }
   }
 }
 
 extension GridAtExtension on List2<AnimatedTile> {
-  AnimatedTile at(final Tile tile) => this[tile.y][tile.x];
+  AnimatedTile at(Tile tile) => this[tile.y][tile.x];
 }

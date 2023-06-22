@@ -17,7 +17,7 @@ class ActiveTile extends StatelessWidget {
   final int animatedValue;
   final double scale;
 
-  static (Color, Color) _tileColor(final int number) => switch (number) {
+  static (Color, Color) _tileColor(int number) => switch (number) {
         2 => const (CustomColors.tile2, CustomColors.grayText),
         4 => const (CustomColors.tile4, CustomColors.grayText),
         8 => const (CustomColors.tile8, CustomColors.whiteText),
@@ -33,8 +33,8 @@ class ActiveTile extends StatelessWidget {
       };
 
   @override
-  Widget build(final BuildContext context) {
-    final (Color backgroundColor, Color foregroundColor) = _tileColor(animatedValue);
+  Widget build(BuildContext context) {
+    var (Color backgroundColor, Color foregroundColor) = _tileColor(animatedValue);
 
     return Transform.scale(
       scale: scale,

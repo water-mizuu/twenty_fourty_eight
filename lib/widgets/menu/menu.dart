@@ -25,13 +25,13 @@ class _MenuState extends State<Menu> {
   }
 
   Widget option({
-    required final String label,
-    required final void Function(double) callback,
-    required final double value,
-    required final double max,
-    required final double gridWidth,
-    required final double height,
-    final double min = 0.0,
+    required String label,
+    required void Function(double) callback,
+    required double value,
+    required double max,
+    required double gridWidth,
+    required double height,
+    double min = 0.0,
   }) =>
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -63,7 +63,7 @@ class _MenuState extends State<Menu> {
   }
 
   @override
-  Widget build(final BuildContext context) {
+  Widget build(BuildContext context) {
     const double boxWidth = Sizes.tileSize * 5;
     const double horizontalMargin = boxWidth * 0.035;
 
@@ -129,7 +129,7 @@ class _MenuState extends State<Menu> {
                                   divisions: 8.0.floor(),
                                   activeColor: CustomColors.brownText,
                                   label: _xSliderValue.floor().toString(),
-                                  onChanged: (final double value) {
+                                  onChanged: (double value) {
                                     if (value case >= 2.0 && <= 8.0) {
                                       setState(() {
                                         _xSliderValue = value;
@@ -144,7 +144,7 @@ class _MenuState extends State<Menu> {
                                   divisions: 8.0.floor(),
                                   activeColor: CustomColors.brownText,
                                   label: _ySliderValue.floor().toString(),
-                                  onChanged: (final double value) {
+                                  onChanged: (double value) {
                                     if (value case >= 2.0 && <= 8.0) {
                                       setState(() {
                                         _ySliderValue = value;
@@ -189,16 +189,16 @@ class _MenuState extends State<Menu> {
 class CustomTrackShape extends RoundedRectSliderTrackShape {
   @override
   Rect getPreferredRect({
-    required final RenderBox parentBox,
-    required final SliderThemeData sliderTheme,
-    final Offset offset = Offset.zero,
-    final bool isEnabled = false,
-    final bool isDiscrete = false,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    Offset offset = Offset.zero,
+    bool isEnabled = false,
+    bool isDiscrete = false,
   }) {
-    final double? trackHeight = sliderTheme.trackHeight;
-    final double trackLeft = offset.dx;
-    final double trackTop = offset.dy + (parentBox.size.height - trackHeight!) / 2;
-    final double trackWidth = parentBox.size.width;
+    double? trackHeight = sliderTheme.trackHeight;
+    double trackLeft = offset.dx;
+    double trackTop = offset.dy + (parentBox.size.height - trackHeight!) / 2;
+    double trackWidth = parentBox.size.width;
     return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
   }
 }

@@ -9,7 +9,7 @@ class GameOverMessage extends StatelessWidget {
   final int textOpacity;
 
   @override
-  Widget build(final BuildContext context) => Center(
+  Widget build(BuildContext context) => Center(
         child: Text(
           "Game Over!",
           style: TextStyle(

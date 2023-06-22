@@ -33,7 +33,7 @@ class _ApplicationState extends State<Application> {
   }
 
   @override
-  Widget build(final BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => MaterialApp(
         title: "2048",
         theme: ThemeData(useMaterial3: true),
         home: KeyboardListener(
@@ -42,13 +42,13 @@ class _ApplicationState extends State<Application> {
           onKeyEvent: state.keyListener,
           child: ChangeNotifierProvider<GameState>.value(
             value: state,
-            builder: (final BuildContext context, final _) => Scaffold(
+            builder: (BuildContext context, _) => Scaffold(
               backgroundColor: CustomColors.tan,
               body: Stack(
                 fit: StackFit.expand,
                 children: <Widget>[
                   const Game(),
-                  if (context.select((final GameState state) => state.displayMenu)) const Menu(),
+                  if (context.select((GameState state) => state.displayMenu)) const Menu(),
                 ],
               ),
             ),

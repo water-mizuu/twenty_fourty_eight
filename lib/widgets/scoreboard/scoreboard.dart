@@ -13,8 +13,8 @@ class Scoreboard extends StatelessWidget {
   static const double height = Sizes.tileSize;
 
   @override
-  Widget build(final BuildContext context) {
-    final GameState state = context.read<GameState>();
+  Widget build(BuildContext context) {
+    GameState state = context.read<GameState>();
 
     return Container(
       width: width,
@@ -33,7 +33,7 @@ class Scoreboard extends StatelessWidget {
           const SizedBox(height: height * 0.025),
           ScoreboardButton(
             text: "BACKTRACK",
-            onPressed: context.select((final GameState state) => state.canBacktrack())
+            onPressed: context.select((GameState state) => state.canBacktrack())
                 ? () => state.backtrack() //
                 : null,
           ),

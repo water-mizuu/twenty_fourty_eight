@@ -150,9 +150,9 @@ linter:
     prefer_equal_for_default_values: true
     prefer_expression_function_bodies: true
     prefer_final_fields: true
-    prefer_final_in_for_each: true
-    prefer_final_locals: true
-    prefer_final_parameters: true
+    prefer_final_in_for_each: false
+    prefer_final_locals: false
+    prefer_final_parameters: false
     prefer_for_elements_to_map_fromIterable: true
     prefer_foreach: true
     prefer_function_declarations_over_variables: true
@@ -199,7 +199,7 @@ linter:
     unnecessary_breaks: true
     unnecessary_const: true
     unnecessary_constructor_name: false
-    unnecessary_final: false
+    unnecessary_final: true
     unnecessary_getters_setters: true
     unnecessary_lambdas: false
     unnecessary_late: true

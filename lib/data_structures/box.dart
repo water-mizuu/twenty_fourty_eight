@@ -6,7 +6,7 @@ class Box<T> {
   final int value;
 
   @override
-  bool operator ==(final Object other) => identical(this, other);
+  bool operator ==(Object other) => identical(this, other);
 
   @override
   // ignore: unnecessary_overrides

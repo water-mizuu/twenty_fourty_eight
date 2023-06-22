@@ -15,9 +15,9 @@ class GameOverScreen extends StatelessWidget {
   final double buttonOpacity;
 
   @override
-  Widget build(final BuildContext context) => LayoutBuilder(
-        builder: (final BuildContext context, final BoxConstraints constraints) {
-          final double height = constraints.constrainHeight();
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          double height = constraints.constrainHeight();
 
           return Stack(
             alignment: Alignment.topCenter,

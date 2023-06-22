@@ -2,13 +2,13 @@ import "package:flutter/animation.dart";
 import "package:twenty_fourty_eight/data_structures/move_action.dart";
 
 class AnimatedTile {
-  AnimatedTile(final ({int y, int x}) index, this.value)
+  AnimatedTile(({int y, int x}) index, this.value)
       : y = index.y,
         x = index.x {
     resetAnimations();
   }
 
-  AnimatedTile.from(final Tile tile, [final int? value])
+  AnimatedTile.from(Tile tile, [int? value])
       : x = tile.x,
         y = tile.y,
         value = value ?? tile.value {
@@ -38,7 +38,7 @@ class AnimatedTile {
     opacity = const AlwaysStoppedAnimation<double>(1.0);
   }
 
-  void moveTo(final Animation<double> parent, final int x, final int y) {
+  void moveTo(Animation<double> parent, int x, int y) {
     animatedX = CurvedAnimation(parent: parent, curve: const Interval(0.0, split, curve: animationCurve))
         .drive(Tween<double>(begin: this.x.toDouble(), end: x.toDouble()));
 
@@ -46,7 +46,7 @@ class AnimatedTile {
         .drive(Tween<double>(begin: this.y.toDouble(), end: y.toDouble()));
   }
 
-  void unmoveTo(final Animation<double> parent, final int x, final int y) {
+  void unmoveTo(Animation<double> parent, int x, int y) {
     animatedX = CurvedAnimation(parent: parent, curve: const Interval(1 - reverseSplit, 1.0, curve: animationCurve))
         .drive(Tween<double>(begin: this.x.toDouble(), end: x.toDouble()));
 
@@ -54,7 +54,7 @@ class AnimatedTile {
         .drive(Tween<double>(begin: this.y.toDouble(), end: y.toDouble()));
   }
 
-  void bounce(final Animation<double> parent) {
+  void bounce(Animation<double> parent) {
     scale = CurvedAnimation(parent: parent, curve: const Interval(split, 1.0, curve: animationCurve)).drive(
       TweenSequence<double>(<TweenSequenceItem<double>>[
         TweenSequenceItem<double>(tween: Tween<double>(begin: 1.0, end: 1.2), weight: 0.5),
@@ -63,7 +63,7 @@ class AnimatedTile {
     );
   }
 
-  void debounce(final Animation<double> parent) {
+  void debounce(Animation<double> parent) {
     scale = CurvedAnimation(parent: parent, curve: const Interval(0.0, reverseSplit, curve: animationCurve)).drive(
       TweenSequence<double>(<TweenSequenceItem<double>>[
         TweenSequenceItem<double>(tween: Tween<double>(begin: 1.0, end: 1.2), weight: 0.5),
@@ -72,17 +72,17 @@ class AnimatedTile {
     );
   }
 
-  void appear(final Animation<double> parent) {
+  void appear(Animation<double> parent) {
     scale = CurvedAnimation(parent: parent, curve: const Interval(split, 1.0, curve: animationCurve))
         .drive(Tween<double>(begin: 0.0, end: 1.0));
   }
 
-  void disappear(final Animation<double> parent) {
+  void disappear(Animation<double> parent) {
     scale = CurvedAnimation(parent: parent, curve: const Interval(0.0, reverseSplit, curve: animationCurve))
         .drive(Tween<double>(begin: 1.0, end: 0.0));
   }
 
-  void changeNumber(final Animation<double> parent, final int newValue) {
+  void changeNumber(Animation<double> parent, int newValue) {
     animatedValue = CurvedAnimation(parent: parent, curve: const Interval(split, 1.0, curve: animationCurve)).drive(
       TweenSequence<int>(<TweenSequenceItem<int>>[
         TweenSequenceItem<int>(tween: ConstantTween<int>(this.value), weight: 0.01),
@@ -91,7 +91,7 @@ class AnimatedTile {
     );
   }
 
-  void unchangeNumber(final Animation<double> parent, final int newValue) {
+  void unchangeNumber(Animation<double> parent, int newValue) {
     animatedValue =
         CurvedAnimation(parent: parent, curve: const Interval(0.0, reverseSplit, curve: animationCurve)).drive(
       TweenSequence<int>(<TweenSequenceItem<int>>[
@@ -101,7 +101,7 @@ class AnimatedTile {
     );
   }
 
-  void animate(final Animation<double> parent) {
+  void animate(Animation<double> parent) {
     opacity = parent.drive(ConstantTween<double>(0.0));
   }
 }

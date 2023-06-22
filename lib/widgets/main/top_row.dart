@@ -12,10 +12,10 @@ class TopRow extends StatelessWidget {
   const TopRow({super.key});
 
   @override
-  Widget build(final BuildContext context) {
-    final int gridX = max(3, context.select((final GameState state) => state.gridX));
+  Widget build( BuildContext context) {
+     int gridX = max(3, context.select(( GameState state) => state.gridX));
 
-    final double width = Sizes.tileSize * (gridX + GameTile.tileMarginRatio);
+     double width = Sizes.tileSize * (gridX + GameTile.tileMarginRatio);
 
     return SizedBox(
       width: width,

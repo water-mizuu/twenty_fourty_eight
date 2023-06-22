@@ -8,11 +8,11 @@ class Game extends StatelessWidget {
   const Game({super.key});
 
   @override
-  Widget build(final BuildContext context) {
-    final (
+  Widget build(BuildContext context) {
+    var (
       GestureDragEndCallback vertical,
       GestureDragEndCallback horizontal,
-    ) = context.select((final GameState state) => state.dragEndListeners);
+    ) = context.select((GameState state) => state.dragEndListeners);
 
     return GestureDetector(
       onVerticalDragEnd: vertical,

@@ -34,29 +34,29 @@ class _AddedScorePopupState extends State<AddedScorePopup> with SingleTickerProv
   }
 
   @override
-  Widget build(final BuildContext context) {
-    final int currentScore = context.select((final GameState state) => state.addedScore).value;
+  Widget build(BuildContext context) {
+    int currentScore = context.select((GameState state) => state.addedScore).value;
 
     switch (currentScore) {
-      case final int value && != 0:
+      case int value && != 0:
         resetAnimations();
         startAnimation();
 
         return AspectRatio(
           aspectRatio: aspectRatioWidthToHeight,
           child: LayoutBuilder(
-            builder: (final BuildContext context, final BoxConstraints constraints) {
-              final Size(:double width, :double height) = constraints.constrain(Size.infinite);
-              final double translateX = (random.nextDouble() - 0.5) * 0.25 * width;
+            builder: (BuildContext context, BoxConstraints constraints) {
+              var Size(:double width, :double height) = constraints.constrain(Size.infinite);
+              double translateX = (random.nextDouble() - 0.5) * 0.25 * width;
 
               return SizedBox(
                 width: width,
                 child: Center(
                   child: AnimatedBuilder(
                     animation: animationController,
-                    builder: (final BuildContext context, final Widget? child) {
-                      final Animation<double>(value: double opacity) = this.opacity;
-                      final Animation<double>(value: double translateFactorY) = this.translateFactorY;
+                    builder: (BuildContext context, Widget? child) {
+                      var Animation<double>(value: double opacity) = this.opacity;
+                      var Animation<double>(value: double translateFactorY) = this.translateFactorY;
 
                       return Transform.translate(
                         offset: Offset(translateX, height * translateFactorY),

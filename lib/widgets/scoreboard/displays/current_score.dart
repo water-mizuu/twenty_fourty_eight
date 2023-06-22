@@ -10,7 +10,7 @@ class CurrentScore extends StatelessWidget {
   static const TextStyle displayTextStyle = TextStyle.new(fontSize: 32.0, fontWeight: FontWeight.w700);
 
   @override
-  Widget build(final BuildContext context) => AspectRatio(
+  Widget build(BuildContext context) => AspectRatio(
         aspectRatio: aspectRatioWidthToHeight,
         child: ColoredBox(
           color: CustomColors.darkBrown,
@@ -23,7 +23,7 @@ class CurrentScore extends StatelessWidget {
                   style: displayTextStyle.copyWith(color: CustomColors.displayText),
                 ),
                 Text(
-                  context.select((final GameState state) => state.score).toString(),
+                  context.select((GameState state) => state.score).toString(),
                   style: displayTextStyle.copyWith(color: CustomColors.whiteText),
                 ),
               ],
