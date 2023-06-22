@@ -29,8 +29,8 @@ class BoardDisplay extends StatelessWidget {
             const BoardBackground(),
             const BoardGame(),
             Positioned(
-              height: height,
-              width: width,
+              height: height * 1.01,
+              width: width * 1.01,
               child: const GameOver(),
             ),
           ],
