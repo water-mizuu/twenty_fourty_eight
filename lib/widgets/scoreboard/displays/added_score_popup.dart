@@ -1,5 +1,4 @@
 import "package:flutter/widgets.dart";
-import "package:flutter_animate/flutter_animate.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
@@ -22,7 +21,7 @@ class _AddedScorePopupState extends State<AddedScorePopup> with SingleTickerProv
   void initState() {
     super.initState();
 
-    animationController = AnimationController(vsync: this, duration: 500.milliseconds);
+    animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
 
     resetAnimations();
   }
