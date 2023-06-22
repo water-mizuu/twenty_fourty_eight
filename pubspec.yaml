@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   provider:
+  shared_preferences:
   window_manager:
 
 dev_dependencies:

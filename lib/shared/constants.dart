@@ -1,6 +1,7 @@
 import "dart:math" as math;
 
 import "package:flutter/widgets.dart";
+import "package:shared_preferences/shared_preferences.dart";
 
 abstract final class CustomColors {
   static const Color lightBrown = Color.fromARGB(255, 205, 193, 180);
@@ -33,6 +34,8 @@ abstract final class Sizes {
 
 const BoxDecoration roundRadius = BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(8.0)));
 final math.Random random = math.Random();
+
+late final SharedPreferences sharedPreferences;
 
 /// NOTE: Do not touch the code.
 bool isDebug = false;
