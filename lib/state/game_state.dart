@@ -2,7 +2,7 @@ import "dart:collection";
 import "dart:io";
 import "dart:math" as math;
 
-import "package:flutter/material.dart" hide Action;
+import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
 import "package:twenty_fourty_eight/data_structures/box.dart";
@@ -18,7 +18,7 @@ enum MenuState {
 }
 
 class GameState with ChangeNotifier {
-  GameState([this.gridY = defaultGridY, this.gridX = defaultGridX])
+  GameState([this.gridY = _defaultGridY, this.gridX = _defaultGridX])
       : score = 0,
         addedScore = const Box<int>(0),
         displayMenu = false,
@@ -26,32 +26,19 @@ class GameState with ChangeNotifier {
         _actionIsUnlocked = true,
         _ghost = Queue<AnimatedTile>(),
         _persistingData = <(int, int), (int, String, Queue<MoveAction>)>{},
-        // _grid = <List<AnimatedTile>>[
-        //   for (int y = 0; y < gridY; ++y)
-        //     <AnimatedTile>[
-        //       for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
-        //     ],
-        // ],
         _grid = <List<AnimatedTile>>[
           for (int y = 0; y < gridY; ++y)
             <AnimatedTile>[
-              for (int x = 0; x < gridX; ++x)
-                AnimatedTile(
-                  (y: y, x: x),
-                  <List<int>>[
-                    <int>[0, 0, 0, 0],
-                    <int>[2, 0, 2, 2],
-                    <int>[0, 0, 0, 0],
-                    <int>[0, 0, 0, 2],
-                  ][y][x],
-                ),
-            ]
+              for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
+            ],
         ],
-        _actionHistory = Queue<MoveAction>();
+        _actionHistory = Queue<MoveAction>(),
+        _backtrackCount = 0;
 
-  static const int defaultGridY = 4;
-  static const int defaultGridX = 4;
-  static const Duration animationDuration = Duration(milliseconds: 285);
+  static const int _backtrackLimit = 1;
+  static const int _defaultGridY = 4;
+  static const int _defaultGridX = 4;
+  static const Duration _animationDuration = Duration(milliseconds: 285);
 
   late final AnimationController controller;
 
@@ -79,7 +66,9 @@ class GameState with ChangeNotifier {
   List2<AnimatedTile> _grid;
   bool _actionIsUnlocked;
   int _scoreBuffer;
+
   Queue<MoveAction> _actionHistory;
+  int _backtrackCount;
 
   Iterable<AnimatedTile> get flattenedGrid => _grid.expand((final List<AnimatedTile> r) => r);
   Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_ghost);
@@ -105,7 +94,7 @@ class GameState with ChangeNotifier {
   }
 
   void registerAnimationController(final TickerProvider provider) {
-    controller = AnimationController(vsync: provider, duration: animationDuration)
+    controller = AnimationController(vsync: provider, duration: _animationDuration)
       ..addStatusListener((final AnimationStatus status) {
         if (status case AnimationStatus.completed) {
           _ghost.clear();
@@ -141,19 +130,11 @@ class GameState with ChangeNotifier {
     notifyListeners();
   }
 
-  bool canSwipeLeft() => _grid.any(_canSwipe);
-
-  bool canSwipeRight() => _grid.reversedRows.any(_canSwipe);
-
-  bool canSwipeUp() => _grid.columns.any(_canSwipe);
-
-  bool canSwipeDown() => _grid.columns.reversedRows.any(_canSwipe);
-
-  bool canSwipeAnywhere() => canSwipeUp() || canSwipeDown() || canSwipeLeft() || canSwipeRight();
+  bool canSwipeAnywhere() => _canSwipeUp() || _canSwipeDown() || _canSwipeLeft() || _canSwipeRight();
 
   void backtrack() => _backtrack();
 
-  bool canBacktrack() => _actionHistory.isNotEmpty;
+  bool canBacktrack() => _actionHistory.isNotEmpty && _backtrackCount < _backtrackLimit;
 
   static int randomTileNumber() => switch (random.nextDouble()) {
         <= 0.125 => 4,
@@ -161,6 +142,14 @@ class GameState with ChangeNotifier {
       };
 
   static int powerOfTwo(final int gridY, final int y, final int x) => math.pow(2, y * gridY + x + 1).floor();
+
+  bool _canSwipeLeft() => _grid.any(_canSwipe);
+
+  bool _canSwipeRight() => _grid.reversedRows.any(_canSwipe);
+
+  bool _canSwipeUp() => _grid.columns.any(_canSwipe);
+
+  bool _canSwipeDown() => _grid.columns.reversedRows.any(_canSwipe);
 
   static String _runLengthEncoding(final List2<AnimatedTile> tiles) {
     final StringBuffer buffer = StringBuffer("${tiles[0].length}::");
@@ -224,19 +213,19 @@ class GameState with ChangeNotifier {
 
     switch (event.logicalKey) {
       /// UP
-      case LogicalKeyboardKey.arrowUp when canSwipeUp():
+      case LogicalKeyboardKey.arrowUp when _canSwipeUp():
         _swipe(Direction.up);
 
       /// DOWN
-      case LogicalKeyboardKey.arrowDown when canSwipeDown():
+      case LogicalKeyboardKey.arrowDown when _canSwipeDown():
         _swipe(Direction.down);
 
       /// LEFT
-      case LogicalKeyboardKey.arrowLeft when canSwipeLeft():
+      case LogicalKeyboardKey.arrowLeft when _canSwipeLeft():
         _swipe(Direction.left);
 
       /// RIGHT
-      case LogicalKeyboardKey.arrowRight when canSwipeRight():
+      case LogicalKeyboardKey.arrowRight when _canSwipeRight():
         _swipe(Direction.right);
 
       /// DEBUGS
@@ -256,11 +245,11 @@ class GameState with ChangeNotifier {
   void _verticalDragListener(final DragEndDetails details) {
     switch (details.velocity.pixelsPerSecond.dy) {
       /// Swipe Up
-      case < -200 when canSwipeUp():
+      case < -200 when _canSwipeUp():
         _swipe(Direction.up);
 
       /// Swipe Down
-      case > 200 when canSwipeDown():
+      case > 200 when _canSwipeDown():
         _swipe(Direction.down);
     }
   }
@@ -268,11 +257,11 @@ class GameState with ChangeNotifier {
   void _horizontalDragListener(final DragEndDetails details) {
     switch (details.velocity.pixelsPerSecond.dx) {
       /// Swipe Left
-      case < -200 when canSwipeLeft():
+      case < -200 when _canSwipeLeft():
         _swipe(Direction.left);
 
       /// Swipe Right
-      case > 200 when canSwipeRight():
+      case > 200 when _canSwipeRight():
         _swipe(Direction.right);
     }
   }
@@ -341,6 +330,7 @@ class GameState with ChangeNotifier {
     }
 
     _actionIsUnlocked = false;
+    _backtrackCount = 0;
 
     _computation:
     {
@@ -438,11 +428,12 @@ class GameState with ChangeNotifier {
   }
 
   void _backtrack() {
-    if (!_actionIsUnlocked || _actionHistory.isEmpty) {
+    if (!_actionIsUnlocked || !canBacktrack()) {
       return;
     }
 
     _actionIsUnlocked = false;
+    _backtrackCount += 1;
 
     _computation:
     {
