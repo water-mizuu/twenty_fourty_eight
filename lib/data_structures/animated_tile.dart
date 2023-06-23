@@ -101,7 +101,11 @@ class AnimatedTile {
     );
   }
 
-  void animate(Animation<double> parent) {
+  void hide(Animation<double> parent) {
     opacity = parent.drive(ConstantTween<double>(0.0));
+  }
+
+  void show(Animation<double> parent) {
+    opacity = parent.drive(ConstantTween<double>(1.0));
   }
 }

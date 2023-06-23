@@ -94,7 +94,9 @@ class GameState with ChangeNotifier {
         if (status case AnimationStatus.completed) {
           _ghost.clear();
           for (AnimatedTile tile in flattenedGrid) {
-            tile.resetAnimations();
+            tile
+              ..show(controller)
+              ..resetAnimations();
           }
 
           controller.reset();
@@ -372,7 +374,7 @@ class GameState with ChangeNotifier {
             int value = target.value;
 
             /// Animate the tile at position t.
-            target.animate(controller);
+            target.hide(controller);
 
             _ghost.add(
               AnimatedTile.from(target.tile) //
@@ -384,7 +386,7 @@ class GameState with ChangeNotifier {
               /// Increase the resulting value of the target,
               value *= 2;
 
-              merge.animate(controller);
+              merge.hide(controller);
 
               /// Do some animations.
               _ghost.add(
@@ -441,7 +443,7 @@ class GameState with ChangeNotifier {
       for (Tile tile in added) {
         _ghost.add(AnimatedTile.from(tile)..disappear(controller));
         _grid.at(tile)
-          ..animate(controller)
+          ..hide(controller)
           ..value = 0;
       }
 
@@ -462,10 +464,10 @@ class GameState with ChangeNotifier {
               );
 
             _grid.at(destination)
-              ..animate(controller)
+              ..hide(controller)
               ..value = 0;
             _grid.at(target)
-              ..animate(controller)
+              ..hide(controller)
               ..value = value;
 
           case (from: (Tile target, Tile merge), to: Tile destination):
@@ -487,15 +489,15 @@ class GameState with ChangeNotifier {
               );
 
             _grid.at(destination)
-              ..animate(controller)
+              ..hide(controller)
               ..value = 0;
 
             _grid.at(target)
-              ..animate(controller)
+              ..hide(controller)
               ..value = value;
 
             _grid.at(merge)
-              ..animate(controller)
+              ..hide(controller)
               ..value = value;
         }
       }
