@@ -2,7 +2,6 @@ import "dart:ui";
 
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
-import "package:twenty_fourty_eight/helper/custom_track_shape.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
 
@@ -24,38 +23,6 @@ class _MenuState extends State<Menu> {
     _xSliderValue = context.read<GameState>().gridX.toDouble();
     _ySliderValue = context.read<GameState>().gridY.toDouble();
   }
-
-  Widget option({
-    required String label,
-    required void Function(double) callback,
-    required double value,
-    required double max,
-    required double gridWidth,
-    required double height,
-    double min = 0.0,
-  }) =>
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: height * 0.05,
-              color: CustomColors.brownText,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: (max - min).floor(),
-            activeColor: CustomColors.brownText,
-            label: value.floor().toString(),
-            onChanged: callback,
-          ),
-        ],
-      );
 
   void _save() {
     context.read<GameState>()
@@ -93,69 +60,75 @@ class _MenuState extends State<Menu> {
                   const SizedBox(height: 32),
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: horizontalMargin),
-                    child: Row(
-                      children: <Widget>[
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Table(
+                      columnWidths: const <int, TableColumnWidth>{
+                        0: IntrinsicColumnWidth(flex: 2.0),
+                        1: IntrinsicColumnWidth(flex: 3.0),
+                      },
+                      children: <TableRow>[
+                        TableRow(
                           children: <Widget>[
-                            Text(
-                              "Horizontal Tile Count",
-                              style: TextStyle(
-                                fontSize: 28,
-                                color: CustomColors.brownText,
-                                fontWeight: FontWeight.w500,
+                            const Align(
+                              alignment: Alignment.centerLeft,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  "Horizontal Tile Count",
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    color: CustomColors.brownText,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
                             ),
-                            SizedBox(height: 32),
-                            Text(
-                              "Vertical Tile Count",
-                              style: TextStyle(
-                                fontSize: 28,
-                                color: CustomColors.brownText,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                            Slider(
+                              value: _xSliderValue,
+                              max: 8.0,
+                              divisions: 8.0.floor(),
+                              activeColor: CustomColors.brownText,
+                              label: _xSliderValue.floor().toString(),
+                              onChanged: (double value) {
+                                if (value case >= 2.0 && <= 8.0) {
+                                  setState(() {
+                                    _xSliderValue = value;
+                                  });
+                                }
+                              },
+                            )
                           ],
                         ),
-                        const SizedBox(width: horizontalMargin),
-                        Expanded(
-                          child: SliderTheme(
-                            data: SliderThemeData(trackShape: CustomTrackShape()),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: <Widget>[
-                                Slider(
-                                  value: _xSliderValue,
-                                  max: 8.0,
-                                  divisions: 8.0.floor(),
-                                  activeColor: CustomColors.brownText,
-                                  label: _xSliderValue.floor().toString(),
-                                  onChanged: (double value) {
-                                    if (value case >= 2.0 && <= 8.0) {
-                                      setState(() {
-                                        _xSliderValue = value;
-                                      });
-                                    }
-                                  },
+                        TableRow(
+                          children: <Widget>[
+                            const Align(
+                              alignment: Alignment.centerLeft,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  "Vertical Tile Count",
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    color: CustomColors.brownText,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                                const SizedBox(height: 32),
-                                Slider(
-                                  value: _ySliderValue,
-                                  max: 8.0,
-                                  divisions: 8.0.floor(),
-                                  activeColor: CustomColors.brownText,
-                                  label: _ySliderValue.floor().toString(),
-                                  onChanged: (double value) {
-                                    if (value case >= 2.0 && <= 8.0) {
-                                      setState(() {
-                                        _ySliderValue = value;
-                                      });
-                                    }
-                                  },
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
+                            Slider(
+                              value: _ySliderValue,
+                              max: 8.0,
+                              divisions: 8.0.floor(),
+                              activeColor: CustomColors.brownText,
+                              label: _ySliderValue.floor().toString(),
+                              onChanged: (double value) {
+                                if (value case >= 2.0 && <= 8.0) {
+                                  setState(() {
+                                    _ySliderValue = value;
+                                  });
+                                }
+                              },
+                            )
+                          ],
                         ),
                       ],
                     ),
