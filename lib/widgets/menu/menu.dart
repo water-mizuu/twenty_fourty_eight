@@ -4,6 +4,10 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
+import "package:twenty_fourty_eight/state/menu_state.dart";
+import "package:twenty_fourty_eight/widgets/menu/menu_exit.dart";
+import "package:twenty_fourty_eight/widgets/menu/menu_options.dart";
+import "package:twenty_fourty_eight/widgets/menu/menu_title.dart";
 
 class Menu extends StatefulWidget {
   const Menu({super.key});
@@ -12,150 +16,51 @@ class Menu extends StatefulWidget {
   State<Menu> createState() => _MenuState();
 }
 
-class _MenuState extends State<Menu> {
-  late double _xSliderValue;
-  late double _ySliderValue;
+class _MenuState extends State<Menu> with SingleTickerProviderStateMixin {
+  static const double boxWidth = Sizes.tileSize * 5;
+  static const Widget _pad = SizedBox(height: 32);
+
+  late final MenuState state;
+  late final Animation<double> _opacity;
 
   @override
   void initState() {
     super.initState();
 
-    _xSliderValue = context.read<GameState>().gridX.toDouble();
-    _ySliderValue = context.read<GameState>().gridY.toDouble();
-  }
-
-  void _save() {
-    context.read<GameState>()
-      ..changeDimensions(_ySliderValue.floor(), _xSliderValue.floor())
-      ..closeMenu();
+    state = MenuState(this, context.read<GameState>());
+    _opacity = state.controller.drive(Tween<double>(begin: 0.0, end: 1.0));
   }
 
   @override
-  Widget build(BuildContext context) {
-    const double boxWidth = Sizes.tileSize * 5;
-    const double horizontalMargin = boxWidth * 0.035;
-
-    return ColoredBox(
-      color: const Color.fromARGB(128, 175, 175, 175),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
-        child: Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: SizedBox(
-              width: boxWidth,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  const Center(
-                    child: Text(
-                      "Menu",
-                      style: TextStyle(
-                        fontSize: 64,
-                        color: Color.fromARGB(255, 119, 110, 101),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: horizontalMargin),
-                    child: Table(
-                      columnWidths: const <int, TableColumnWidth>{
-                        0: IntrinsicColumnWidth(flex: 2.0),
-                        1: IntrinsicColumnWidth(flex: 3.0),
-                      },
-                      children: <TableRow>[
-                        TableRow(
-                          children: <Widget>[
-                            const Align(
-                              alignment: Alignment.centerLeft,
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  "Horizontal Tile Count",
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    color: CustomColors.brownText,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Slider(
-                              value: _xSliderValue,
-                              max: 8.0,
-                              divisions: 8.0.floor(),
-                              activeColor: CustomColors.brownText,
-                              label: _xSliderValue.floor().toString(),
-                              onChanged: (double value) {
-                                if (value case >= 2.0 && <= 8.0) {
-                                  setState(() {
-                                    _xSliderValue = value;
-                                  });
-                                }
-                              },
-                            )
-                          ],
-                        ),
-                        TableRow(
-                          children: <Widget>[
-                            const Align(
-                              alignment: Alignment.centerLeft,
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  "Vertical Tile Count",
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    color: CustomColors.brownText,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Slider(
-                              value: _ySliderValue,
-                              max: 8.0,
-                              divisions: 8.0.floor(),
-                              activeColor: CustomColors.brownText,
-                              label: _ySliderValue.floor().toString(),
-                              onChanged: (double value) {
-                                if (value case >= 2.0 && <= 8.0) {
-                                  setState(() {
-                                    _ySliderValue = value;
-                                  });
-                                }
-                              },
-                            )
-                          ],
-                        ),
+  Widget build(BuildContext context) => ChangeNotifierProvider<MenuState>.value(
+        value: state..animationForward(),
+        child: AnimatedBuilder(
+          animation: state.controller,
+          builder: (BuildContext context, Widget? child) => Opacity(
+            opacity: _opacity.value,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
+              child: const ColoredBox(
+                color: Color.fromARGB(64, 255, 255, 255),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SizedBox(
+                    width: boxWidth,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        MenuTitle(),
+                        _pad,
+                        MenuOptions(),
+                        _pad,
+                        MenuExit(),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  Center(
-                    child: MaterialButton(
-                      hoverColor: const Color.fromARGB(0, 0, 0, 0),
-                      onPressed: () {
-                        _save();
-                      },
-                      child: const Text(
-                        "Save Changes",
-                        style: TextStyle(
-                          fontSize: 28,
-                          color: CustomColors.brownText,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
+      );
 }
