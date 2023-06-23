@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:twenty_fourty_eight/widgets/game_over/game_over_message.dart";
 import "package:twenty_fourty_eight/widgets/game_over/reset_button.dart";
+import "package:twenty_fourty_eight/widgets/game_over/undo_button.dart";
 
 class GameOverScreen extends StatelessWidget {
   const GameOverScreen({
@@ -28,7 +29,19 @@ class GameOverScreen extends StatelessWidget {
               ),
               Positioned(
                 top: height / 2,
-                child: ResetButton(buttonOpacity: buttonOpacity),
+                child: Opacity(
+                  opacity: buttonOpacity,
+                  child: IntrinsicWidth(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        const ResetButton(),
+                        SizedBox(height: height * 0.0125),
+                        const UndoButton(),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
           );

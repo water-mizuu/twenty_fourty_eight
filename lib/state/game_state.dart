@@ -12,11 +12,6 @@ import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/shared/typedef.dart";
 
-enum MenuState {
-  openMenu,
-  closeMenu,
-}
-
 class GameState with ChangeNotifier {
   GameState([this.gridY = _defaultGridY, this.gridX = _defaultGridX])
       : score = 0,
@@ -38,7 +33,7 @@ class GameState with ChangeNotifier {
   static const int _backtrackLimit = 1;
   static const int _defaultGridY = 4;
   static const int _defaultGridX = 4;
-  static const Duration _animationDuration = Duration(milliseconds: 285);
+  static const Duration _animationDuration = Duration(milliseconds: 350);
 
   late final AnimationController controller;
 
@@ -60,7 +55,7 @@ class GameState with ChangeNotifier {
   bool displayMenu;
 
   final Queue<AnimatedTile> _ghost;
-  // Stores the (score, runLengthEncoding)s of the saved grids.
+  // Stores the (score, runLengthEncoding, actionHistory)s of the saved grids.
   final Map<(int, int), (int, String, Queue<MoveAction>)> _persistingData;
 
   List2<AnimatedTile> _grid;
@@ -302,7 +297,7 @@ class GameState with ChangeNotifier {
 
   void _fail() {
     for (var AnimatedTile(:int y, :int x) in flattenedGrid) {
-      _grid[y][x].value = powerOfTwo(gridY, y, x);
+      _grid[y][x].value = 0;
     }
 
     notifyListeners();
@@ -467,11 +462,9 @@ class GameState with ChangeNotifier {
               );
 
             _grid.at(destination)
-              ..resetAnimations()
               ..animate(controller)
               ..value = 0;
             _grid.at(target)
-              ..resetAnimations()
               ..animate(controller)
               ..value = value;
 
@@ -494,17 +487,14 @@ class GameState with ChangeNotifier {
               );
 
             _grid.at(destination)
-              ..resetAnimations()
               ..animate(controller)
               ..value = 0;
 
             _grid.at(target)
-              ..resetAnimations()
               ..animate(controller)
               ..value = value;
 
             _grid.at(merge)
-              ..resetAnimations()
               ..animate(controller)
               ..value = value;
         }
