@@ -15,6 +15,7 @@ import "package:twenty_fourty_eight/shared/typedef.dart";
 class GameState with ChangeNotifier {
   GameState([this.gridY = _defaultGridY, this.gridX = _defaultGridX])
       : score = 0,
+        topTileValue = 0,
         addedScore = const Box<int>(0),
         displayMenu = false,
         _scoreBuffer = 0,
@@ -54,6 +55,7 @@ class GameState with ChangeNotifier {
   int gridY;
   int gridX;
   bool displayMenu;
+  int topTileValue;
 
   final Queue<AnimatedTile> _ghost;
   // Stores the (score, runLengthEncoding, actionHistory)s of the saved grids.
@@ -420,7 +422,7 @@ class GameState with ChangeNotifier {
             target.value = 0;
             tiles[i].value = value;
 
-            merges.add((from: (target.tile, merge?.tile), to: tiles[i].tile));
+            merges.add((target: target.tile, merge: merge?.tile, destination: tiles[i].tile));
           }
         }
       }
@@ -460,7 +462,7 @@ class GameState with ChangeNotifier {
 
       for (Merge merge in merges.reversed) {
         switch (merge) {
-          case (from: (Tile target, null), to: Tile destination):
+          case (:Tile target, merge: null, :Tile destination):
             int value = destination.value;
 
             _ghost
@@ -481,7 +483,7 @@ class GameState with ChangeNotifier {
               ..hide(controller)
               ..value = value;
 
-          case (from: (Tile target, Tile merge), to: Tile destination):
+          case (:Tile target, :Tile merge, :Tile destination):
             int value = destination.value ~/ 2;
 
             _ghost

@@ -1,7 +1,8 @@
 import "package:flutter/material.dart";
 
 typedef Tile = ({int y, int x, int value});
-typedef Merge = ({(Tile, Tile?) from, Tile to});
+typedef Merge = ({Tile target, Tile? merge, Tile destination});
+// typedef Merge = ({(Tile, Tile?) from, Tile to});
 
 @immutable
 class MoveAction {
