@@ -2,6 +2,7 @@ import "dart:ui";
 
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import "package:twenty_fourty_eight/helper/custom_track_shape.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
 
@@ -183,22 +184,5 @@ class _MenuState extends State<Menu> {
         ),
       ),
     );
-  }
-}
-
-class CustomTrackShape extends RoundedRectSliderTrackShape {
-  @override
-  Rect getPreferredRect({
-    required RenderBox parentBox,
-    required SliderThemeData sliderTheme,
-    Offset offset = Offset.zero,
-    bool isEnabled = false,
-    bool isDiscrete = false,
-  }) {
-    double? trackHeight = sliderTheme.trackHeight;
-    double trackLeft = offset.dx;
-    double trackTop = offset.dy + (parentBox.size.height - trackHeight!) / 2;
-    double trackWidth = parentBox.size.width;
-    return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
   }
 }

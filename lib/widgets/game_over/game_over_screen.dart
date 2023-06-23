@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
+import "package:twenty_fourty_eight/widgets/game_over/button.dart/reset_button.dart";
+import "package:twenty_fourty_eight/widgets/game_over/button.dart/undo_button.dart";
 import "package:twenty_fourty_eight/widgets/game_over/game_over_message.dart";
-import "package:twenty_fourty_eight/widgets/game_over/reset_button.dart";
-import "package:twenty_fourty_eight/widgets/game_over/undo_button.dart";
 
 class GameOverScreen extends StatelessWidget {
   const GameOverScreen({
