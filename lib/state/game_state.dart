@@ -475,17 +475,17 @@ class GameState with ChangeNotifier {
 
             _ghost
               ..add(
-                AnimatedTile.from(destination, value) //
-                  ..debounce(controller)
-                  ..unchangeNumber(controller, 0),
-              )
-              ..add(
-                AnimatedTile.from(destination, value) //
+                AnimatedTile.from(destination) //
                   ..unmoveTo(controller, target.x, target.y),
               )
               ..add(
-                AnimatedTile.from(destination, value) //
+                AnimatedTile.from(destination) //
                   ..unmoveTo(controller, merge.x, merge.y),
+              )
+              ..add(
+                AnimatedTile.from(destination) //
+                  ..debounce(controller)
+                  ..unchangeNumber(controller, 0),
               );
 
             _grid.at(destination)
