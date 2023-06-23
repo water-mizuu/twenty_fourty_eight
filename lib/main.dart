@@ -8,8 +8,8 @@ import "package:twenty_fourty_eight/widgets/main/application.dart";
 import "package:window_manager/window_manager.dart";
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-    WidgetsFlutterBinding.ensureInitialized();
     await windowManager.ensureInitialized();
 
     await WindowManager.instance.setMinimumSize(const Size(400, 500));
