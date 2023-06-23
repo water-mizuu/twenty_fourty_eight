@@ -384,11 +384,10 @@ class GameState with ChangeNotifier {
             /// If we are *confirmed* to be merging two tiles, then:
             if (merge != null) {
               /// Increase the resulting value of the target,
-              value *= 2;
-
-              merge.hide(controller);
+              value += merge.value;
 
               /// Do some animations.
+              merge.hide(controller);
               _ghost.add(
                 AnimatedTile.from(merge.tile)
                   ..moveTo(controller, x, y)
