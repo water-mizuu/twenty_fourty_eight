@@ -34,7 +34,7 @@ class GameState with ChangeNotifier {
   static const int _backtrackLimit = 1;
   static const int _defaultGridY = 4;
   static const int _defaultGridX = 4;
-  static const Duration _animationDuration = Duration(milliseconds: 350);
+  static const Duration _animationDuration = Duration(milliseconds: 300);
 
   late final AnimationController controller;
 
@@ -72,7 +72,7 @@ class GameState with ChangeNotifier {
   Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_ghost);
 
   ValueChanged<KeyEvent> get keyListener => _keyEventListener;
-  (GestureDragEndCallback, GestureDragEndCallback) get dragEndListeners =>
+  (GestureDragUpdateCallback, GestureDragUpdateCallback) get dragEndListeners =>
       (_verticalDragListener, _horizontalDragListener);
 
   @override
@@ -249,26 +249,32 @@ class GameState with ChangeNotifier {
     }
   }
 
-  void _verticalDragListener(DragEndDetails details) {
-    switch (details.velocity.pixelsPerSecond.dy) {
+  void _verticalDragListener(DragUpdateDetails details) {
+    switch (details.primaryDelta) {
+      case null:
+        break;
+
       /// Swipe Up
-      case < -200 when _canSwipeUp():
+      case < -1.6 when _canSwipeUp():
         _swipe(Direction.up);
 
       /// Swipe Down
-      case > 200 when _canSwipeDown():
+      case > 1.6 when _canSwipeDown():
         _swipe(Direction.down);
     }
   }
 
-  void _horizontalDragListener(DragEndDetails details) {
-    switch (details.velocity.pixelsPerSecond.dx) {
+  void _horizontalDragListener(DragUpdateDetails details) {
+    switch (details.primaryDelta) {
+      case null:
+        break;
+
       /// Swipe Left
-      case < -200 when _canSwipeLeft():
+      case < -1.6 when _canSwipeLeft():
         _swipe(Direction.left);
 
       /// Swipe Right
-      case > 200 when _canSwipeRight():
+      case > 1.6 when _canSwipeRight():
         _swipe(Direction.right);
     }
   }

@@ -10,13 +10,13 @@ class Game extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var (
-      GestureDragEndCallback vertical,
-      GestureDragEndCallback horizontal,
+      GestureDragUpdateCallback vertical,
+      GestureDragUpdateCallback horizontal,
     ) = context.select((GameState state) => state.dragEndListeners);
 
     return GestureDetector(
-      onVerticalDragEnd: vertical,
-      onHorizontalDragEnd: horizontal,
+      onVerticalDragUpdate: vertical,
+      onHorizontalDragUpdate: horizontal,
       child: const FittedBox(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
