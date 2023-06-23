@@ -474,11 +474,11 @@ class GameState with ChangeNotifier {
 
             _ghost
               ..add(
-                AnimatedTile.from(destination) //
+                AnimatedTile.from(destination, value) //
                   ..unmoveTo(controller, target.x, target.y),
               )
               ..add(
-                AnimatedTile.from(destination) //
+                AnimatedTile.from(destination, value) //
                   ..unmoveTo(controller, merge.x, merge.y),
               )
               ..add(
