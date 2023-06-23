@@ -28,7 +28,8 @@ class GameState with ChangeNotifier {
             ],
         ],
         _actionHistory = Queue<MoveAction>(),
-        _backtrackCount = 0;
+        _backtrackCount = 0,
+        _forcedAllowed = true;
 
   static const int _backtrackLimit = 1;
   static const int _defaultGridY = 4;
@@ -65,6 +66,8 @@ class GameState with ChangeNotifier {
   Queue<MoveAction> _actionHistory;
   int _backtrackCount;
 
+  bool _forcedAllowed;
+
   Iterable<AnimatedTile> get flattenedGrid => _grid.expand((List<AnimatedTile> r) => r);
   Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_ghost);
 
@@ -82,6 +85,8 @@ class GameState with ChangeNotifier {
   }
 
   void reset() {
+    _forcedAllowed = true;
+
     // Nullify
     _persistingData.remove((gridY, gridX));
     _loadGrid();
@@ -127,7 +132,8 @@ class GameState with ChangeNotifier {
     notifyListeners();
   }
 
-  bool canSwipeAnywhere() => _canSwipeUp() || _canSwipeDown() || _canSwipeLeft() || _canSwipeRight();
+  bool canSwipeAnywhere() =>
+      (!isDebug || _forcedAllowed) && (_canSwipeUp() || _canSwipeDown() || _canSwipeLeft() || _canSwipeRight());
 
   void backtrack() {
     if (canBacktrack()) {
@@ -298,9 +304,7 @@ class GameState with ChangeNotifier {
   }
 
   void _fail() {
-    for (var AnimatedTile(:int y, :int x) in flattenedGrid) {
-      _grid[y][x].value = 0;
-    }
+    _forcedAllowed = false;
 
     notifyListeners();
   }
@@ -330,6 +334,7 @@ class GameState with ChangeNotifier {
       return;
     }
 
+    _forcedAllowed = true;
     _actionIsUnlocked = false;
     _backtrackCount = 0;
 
@@ -432,6 +437,7 @@ class GameState with ChangeNotifier {
       return;
     }
 
+    _forcedAllowed = true;
     _actionIsUnlocked = false;
     _backtrackCount += 1;
 
