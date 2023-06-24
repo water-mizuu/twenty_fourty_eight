@@ -17,7 +17,7 @@ class MenuExit extends StatelessWidget {
             "Save Changes",
             style: TextStyle(
               fontSize: 28,
-              color: CustomColors.brownText,
+              color: CustomColors.grayText,
               fontWeight: FontWeight.w500,
             ),
           ),

@@ -1,12 +1,14 @@
 import "dart:collection";
 import "dart:io";
 import "dart:math" as math;
+import "dart:math";
 
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
 import "package:twenty_fourty_eight/data_structures/box.dart";
 import "package:twenty_fourty_eight/data_structures/move_action.dart";
+import "package:twenty_fourty_eight/data_structures/specific_grid_data.dart";
 import "package:twenty_fourty_eight/enum/direction.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/shared/extensions.dart";
@@ -248,6 +250,31 @@ class GameState with ChangeNotifier {
       /// DEBUGS
       case LogicalKeyboardKey.numpad2 when isDebug:
         _backtrack();
+
+      /// DEBUGS
+      case LogicalKeyboardKey.numpad3 when isDebug:
+        if (_actionHistory.isNotEmpty) {
+          MoveAction first = _actionHistory.first;
+          MoveAction copy = MoveAction.fromString(MoveAction.encode(first));
+
+          print(first);
+          print(copy);
+          print(first.toString() == copy.toString());
+        }
+
+      /// DEBUGS
+      case LogicalKeyboardKey.numpad4 when isDebug:
+        if (_actionHistory.isNotEmpty) {
+          SpecificGridData gridData = SpecificGridData(
+            score,
+            score,
+            _grid,
+            _actionHistory,
+          );
+          print("ONE: ${gridData.encode()}");
+          print("TWO: ${SpecificGridData.fromString(gridData.encode()).encode()}");
+          print("");
+        }
     }
   }
 
@@ -398,6 +425,8 @@ class GameState with ChangeNotifier {
             if (merge != null) {
               /// Increase the resulting value of the target,
               value += merge.value;
+
+              topTileValue = max(topTileValue, value);
 
               /// Do some animations.
               merge.hide(controller);

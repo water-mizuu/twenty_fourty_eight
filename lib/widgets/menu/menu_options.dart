@@ -23,7 +23,7 @@ class MenuOptions extends StatelessWidget {
                 text,
                 style: const TextStyle(
                   fontSize: 24,
-                  color: CustomColors.brownText,
+                  color: CustomColors.grayText,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -34,7 +34,7 @@ class MenuOptions extends StatelessWidget {
             min: min,
             max: max,
             divisions: (max - min).floor(),
-            activeColor: CustomColors.brownText,
+            activeColor: CustomColors.grayText,
             label: value.floor().toString(),
             onChanged: onChanged,
           )
