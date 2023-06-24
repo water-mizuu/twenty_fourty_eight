@@ -4,7 +4,6 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/state/game_state.dart";
-import "package:twenty_fourty_eight/widgets/game_over/game_over_screen.dart";
 
 class GameOver extends StatefulWidget {
   const GameOver({super.key});
@@ -21,7 +20,7 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
   late Animation<double> backgroundOpacity;
 
   late Animation<double> textMoveDown;
-  late Animation<int> textOpacity;
+  late Animation<double> textOpacity;
 
   late Animation<double> buttonOpacity;
 
@@ -45,12 +44,7 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
       textMoveDown = CurvedAnimation(parent: controller, curve: curve) //
           .drive(Tween<double>(begin: 0.95, end: 1.00));
       textOpacity = CurvedAnimation(parent: controller, curve: curve) //
-          .drive(IntTween(begin: 0, end: 255));
-    }
-
-    if (const Interval(0.75, 1.00, curve: Curves.ease) case Curve curve) {
-      buttonOpacity = CurvedAnimation(parent: controller, curve: curve) //
-          .drive(Tween<double>(begin: 0.0, end: 1.0));
+          .drive(Tween<double>(begin: 0.00, end: 1.00));
     }
 
     controller.forward();
@@ -74,12 +68,13 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
 
       return AnimatedBuilder(
         animation: controller,
-        builder: (BuildContext context, Widget? child) {
-          var Animation<double>(value: double backgroundOpacity) = this.backgroundOpacity;
-          var Animation<double>(value: double blurRadius) = this.blurRadius;
-          var Animation<double>(value: double textMoveDown) = this.textMoveDown;
-          var Animation<int>(value: int textOpacity) = this.textOpacity;
-          var Animation<double>(value: double buttonOpacity) = this.buttonOpacity;
+        builder: (BuildContext context, _) {
+          var _GameOverState(
+            backgroundOpacity: Animation<double>(value: double backgroundOpacity),
+            blurRadius: Animation<double>(value: double blurRadius),
+            textMoveDown: Animation<double>(value: double textMoveDown),
+            textOpacity: Animation<double>(value: double textOpacity),
+          ) = this;
 
           return Opacity(
             opacity: backgroundOpacity,
@@ -87,10 +82,19 @@ class _GameOverState extends State<GameOver> with SingleTickerProviderStateMixin
               filter: ImageFilter.blur(sigmaX: blurRadius, sigmaY: blurRadius),
               child: DecoratedBox(
                 decoration: roundRadius.copyWith(color: const Color.fromARGB(64, 192, 192, 192)),
-                child: GameOverScreen(
-                  textMoveDown: textMoveDown,
-                  textOpacity: textOpacity,
-                  buttonOpacity: buttonOpacity,
+                child: Opacity(
+                  opacity: textOpacity,
+                  child: Align(
+                    alignment: AlignmentGeometry.lerp(Alignment.topCenter, Alignment.center, textMoveDown)!,
+                    child: const Text(
+                      "Game Over!",
+                      style: TextStyle(
+                        color: CustomColors.grayText,
+                        fontSize: 36,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

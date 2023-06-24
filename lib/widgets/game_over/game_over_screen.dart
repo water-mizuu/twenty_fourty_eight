@@ -1,7 +1,4 @@
 import "package:flutter/material.dart";
-import "package:twenty_fourty_eight/widgets/game_over/button.dart/reset_button.dart";
-import "package:twenty_fourty_eight/widgets/game_over/button.dart/undo_button.dart";
-import "package:twenty_fourty_eight/widgets/game_over/game_over_message.dart";
 
 class GameOverScreen extends StatelessWidget {
   const GameOverScreen({
@@ -16,35 +13,15 @@ class GameOverScreen extends StatelessWidget {
   final double buttonOpacity;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          double height = constraints.constrainHeight();
-
-          return Stack(
-            alignment: Alignment.topCenter,
-            children: <Widget>[
-              Positioned(
-                top: ((height - 128) / 2) * textMoveDown,
-                child: GameOverMessage(textOpacity: textOpacity),
-              ),
-              Positioned(
-                top: height / 2,
-                child: Opacity(
-                  opacity: buttonOpacity,
-                  child: IntrinsicWidth(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        const ResetButton(),
-                        SizedBox(height: height * 0.0125),
-                        const UndoButton(),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+  Widget build(BuildContext context) => Align(
+        alignment: AlignmentGeometry.lerp(Alignment.topCenter, Alignment.center, textMoveDown)!,
+        child: Text(
+          "Game Over!",
+          style: TextStyle(
+            color: Color.fromARGB(textOpacity, 119, 110, 101),
+            fontSize: 36,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       );
 }
