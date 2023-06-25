@@ -1,8 +1,8 @@
 import "dart:collection";
 import "dart:io";
 import "dart:math" as math;
-import "dart:math";
 
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
@@ -16,22 +16,13 @@ import "package:twenty_fourty_eight/shared/typedef.dart";
 
 class GameState with ChangeNotifier {
   GameState([this.gridY = _defaultGridY, this.gridX = _defaultGridX])
-      : score = 0,
-        topTileValue = 0,
-        addedScore = const Box<int>(0),
+      : addedScore = const Box<int>(0),
         displayMenu = false,
         _scoreBuffer = 0,
         _actionIsUnlocked = true,
         _ghost = Queue<AnimatedTile>(),
-        _persistingData = <(int, int), (int, String, Queue<MoveAction>)>{},
-        _grid = <List<AnimatedTile>>[
-          for (int y = 0; y < gridY; ++y)
-            <AnimatedTile>[
-              for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
-            ],
-        ],
-        _actionHistory = Queue<MoveAction>(),
-        _backtrackCount = 0,
+        _persistingData = <(int, int), SpecificGridData>{},
+        _activeSpecificGridData = SpecificGridData.empty(),
         _forcedAllowed = true;
 
   static const int _backtrackLimit = 1;
@@ -41,7 +32,6 @@ class GameState with ChangeNotifier {
 
   late final AnimationController controller;
 
-  int score;
   // Why Box<int> instead of int? Because when we change the value to a value
   //  with the same number (but we changed it), the framework does not count it as a change.
   // Basically, we want it to update each _alert(), and alerting the same value twice in a row won't count.
@@ -56,19 +46,17 @@ class GameState with ChangeNotifier {
   Box<int> addedScore;
   int gridY;
   int gridX;
+
+  /// Flags that affect UI.
   bool displayMenu;
-  int topTileValue;
 
   final Queue<AnimatedTile> _ghost;
-  // Stores the (score, runLengthEncoding, actionHistory)s of the saved grids.
-  final Map<(int, int), (int, String, Queue<MoveAction>)> _persistingData;
+  final Map<(int, int), SpecificGridData> _persistingData;
 
-  List2<AnimatedTile> _grid;
   bool _actionIsUnlocked;
   int _scoreBuffer;
 
-  Queue<MoveAction> _actionHistory;
-  int _backtrackCount;
+  SpecificGridData _activeSpecificGridData;
 
   bool _forcedAllowed;
 
@@ -76,6 +64,19 @@ class GameState with ChangeNotifier {
   Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_ghost);
 
   ValueChanged<KeyEvent> get keyListener => _keyEventListener;
+
+  int get score => _activeSpecificGridData.score;
+  set score(int score) => _activeSpecificGridData.score = score;
+
+  int get topTileValue => _activeSpecificGridData.topTile;
+  set topTileValue(int topTile) => _activeSpecificGridData.topTile = topTile;
+
+  int get _backtrackCount => _activeSpecificGridData.backtrackCount;
+  set _backtrackCount(int count) => _activeSpecificGridData.backtrackCount = count;
+
+  List2<AnimatedTile> get _grid => _activeSpecificGridData.grid;
+  Queue<MoveAction> get _actionHistory => _activeSpecificGridData.actionHistory;
+
   (GestureDragUpdateCallback, GestureDragUpdateCallback) get dragEndListeners =>
       (_verticalDragListener, _horizontalDragListener);
 
@@ -257,9 +258,11 @@ class GameState with ChangeNotifier {
           MoveAction first = _actionHistory.first;
           MoveAction copy = MoveAction.fromString(MoveAction.encode(first));
 
-          print(first);
-          print(copy);
-          print(first.toString() == copy.toString());
+          if (kDebugMode) {
+            print(first);
+            print(copy);
+            print(first.toString() == copy.toString());
+          }
         }
 
       /// DEBUGS
@@ -268,12 +271,17 @@ class GameState with ChangeNotifier {
           SpecificGridData gridData = SpecificGridData(
             score,
             score,
+            score,
+            score,
             _grid,
             _actionHistory,
           );
-          print("ONE: ${gridData.encode()}");
-          print("TWO: ${SpecificGridData.fromString(gridData.encode()).encode()}");
-          print("");
+
+          if (kDebugMode) {
+            print("ONE: ${gridData.encode()}");
+            print("TWO: ${SpecificGridData.fromString(gridData.encode()).encode()}");
+            print("");
+          }
         }
     }
   }
@@ -309,26 +317,16 @@ class GameState with ChangeNotifier {
   }
 
   void _saveGrid() {
-    _persistingData[(gridY, gridX)] = (score, _runLengthEncoding(_grid), _actionHistory);
+    _persistingData[(gridY, gridX)] = _activeSpecificGridData;
   }
 
   void _loadGrid() {
     switch (_persistingData[(gridY, gridX)]) {
-      case (int score, String encoding, Queue<MoveAction> actionHistory):
-        this.score = score;
-        this._grid = _parseRunLengthEncoding(encoding);
-        this._actionHistory = actionHistory;
+      case SpecificGridData data:
+        this._activeSpecificGridData = data;
       case null:
-        this.score = 0;
-        this._grid = <List<AnimatedTile>>[
-          for (int y = 0; y < gridY; ++y)
-            <AnimatedTile>[
-              for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
-            ]
-        ];
-        this._actionHistory = Queue<MoveAction>();
-
-        for (AnimatedTile tile in (flattenedGrid.toList()..shuffle()).take(1)) {
+        this._activeSpecificGridData = SpecificGridData.create(gridY, gridX);
+        for (AnimatedTile tile in (flattenedGrid.toList()..shuffle()).take(2)) {
           tile.value = randomTileNumber();
         }
     }
@@ -404,7 +402,7 @@ class GameState with ChangeNotifier {
               .where((AnimatedTile tile) => tile.value != 0)
               .firstOrNull;
 
-          if (merge case AnimatedTile(:int value) when value != target.value) {
+          if (merge != null && merge.value != target.value) {
             merge = null;
           }
 
@@ -415,17 +413,13 @@ class GameState with ChangeNotifier {
             /// Animate the tile at position t.
             target.hide(controller);
 
-            _ghost.add(
-              AnimatedTile.from(target.tile) //
-                ..moveTo(controller, x, y),
-            );
+            AnimatedTile animatedTarget = AnimatedTile.from(target.tile) //
+              ..moveTo(controller, x, y);
 
             /// If we are *confirmed* to be merging two tiles, then:
             if (merge != null) {
               /// Increase the resulting value of the target,
               value += merge.value;
-
-              topTileValue = max(topTileValue, value);
 
               /// Do some animations.
               merge.hide(controller);
@@ -440,10 +434,12 @@ class GameState with ChangeNotifier {
               merge.value = 0;
 
               /// And the last animation
-              target.changeNumber(controller, 0);
+              animatedTarget.changeNumber(controller, 0);
 
               _addScore(value);
             }
+
+            _ghost.add(animatedTarget);
 
             /// Update their values after the update.
             /// Sequence is important here, because there are cases when target == tiles[i].

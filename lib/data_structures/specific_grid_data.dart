@@ -9,12 +9,30 @@ class SpecificGridData {
   SpecificGridData(
     this.score,
     this.topScore,
+    this.topTile,
+    this.backtrackCount,
     this.grid,
     this.actionHistory,
   );
+
+  SpecificGridData.create(int gridY, int gridX)
+      : score = 0,
+        topScore = 0,
+        topTile = 2,
+        backtrackCount = 0,
+        grid = <List<AnimatedTile>>[
+          for (int y = 0; y < gridY; ++y)
+            <AnimatedTile>[
+              for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
+            ]
+        ],
+        actionHistory = Queue<MoveAction>();
+
   SpecificGridData.empty()
       : score = 0,
         topScore = 0,
+        topTile = 0,
+        backtrackCount = 0,
         grid = List2<AnimatedTile>.empty(),
         actionHistory = Queue<MoveAction>();
 
@@ -22,31 +40,39 @@ class SpecificGridData {
     var [
       String encodedString,
       String encodedTopScore,
+      String encodedTopTile,
+      String encodedBacktrackCount,
       String encodedGrid,
       String encodedActionHistory,
     ] = encoded.split(topLevelSeparator);
 
-    return new SpecificGridData(
+    return SpecificGridData(
       int.parse(encodedString),
       int.parse(encodedTopScore),
+      int.parse(encodedTopTile),
+      int.parse(encodedBacktrackCount),
       _decodeRunLengthEncoding(encodedGrid),
       Queue<MoveAction>.from(encodedActionHistory.split(moveActionHistorySeparator).map(MoveAction.fromString)),
     );
   }
 
   static const int backtrackingLimit = 4;
-  static const String topLevelSeparator = "@";
   static const String moveActionHistorySeparator = "#";
+  static const String topLevelSeparator = "@";
 
+  final Queue<MoveAction> actionHistory;
+  int backtrackCount;
+  final List2<AnimatedTile> grid;
   int score;
   int topScore;
-  final List2<AnimatedTile> grid;
-  final Queue<MoveAction> actionHistory;
+  int topTile;
 
   String encode() {
     List<String> buffer = <String>[
       score.toString(),
       topScore.toString(),
+      topTile.toString(),
+      backtrackCount.toString(),
       _encodeRunLengthEncoding(grid),
       actionHistory
           .take(min(backtrackingLimit, actionHistory.length))
