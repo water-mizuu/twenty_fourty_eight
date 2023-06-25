@@ -5,9 +5,11 @@ class ScoreboardButton extends StatelessWidget {
   const ScoreboardButton({
     required this.icon,
     required this.onPressed,
+    this.color = CustomColors.tile32,
     super.key,
   });
 
+  final Color color;
   final IconData icon;
   final void Function()? onPressed;
 
@@ -16,7 +18,7 @@ class ScoreboardButton extends StatelessWidget {
         minWidth: 0.0,
         disabledColor: CustomColors.grayText,
         disabledTextColor: CustomColors.lightBrown,
-        color: CustomColors.tile32,
+        color: color,
         textColor: onPressed == null ? CustomColors.lightBrown : CustomColors.whiteText,
         onPressed: onPressed,
         child: Icon(icon),

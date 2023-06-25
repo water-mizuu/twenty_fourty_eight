@@ -32,6 +32,12 @@ abstract final class Sizes {
   static const double tileSize = 128.0;
 }
 
+abstract final class Keys {
+  static const String loaded = "keyLoaded";
+  static const String gridY = "gridY";
+  static const String gridX = "gridX";
+}
+
 const BoxDecoration roundRadius = BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(8.0)));
 final math.Random random = math.Random();
 

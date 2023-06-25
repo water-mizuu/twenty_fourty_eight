@@ -1,6 +1,5 @@
 import "dart:async";
 import "dart:collection";
-import "dart:io";
 import "dart:math" as math;
 import "dart:math";
 
@@ -16,12 +15,14 @@ import "package:twenty_fourty_eight/shared/constants.dart";
 import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/shared/typedef.dart";
 
+typedef Listeners = (GestureDragUpdateCallback, GestureDragUpdateCallback);
+
 class GameState with ChangeNotifier {
   GameState([int? gridY, int? gridX])
-      : gridY = gridY ?? sharedPreferences.getInt("GRID_Y") ?? _defaultGridY,
-        gridX = gridX ?? sharedPreferences.getInt("GRID_X") ?? _defaultGridX,
+      : gridY = gridY ?? sharedPreferences.getInt(Keys.gridY) ?? _defaultGridY,
+        gridX = gridX ?? sharedPreferences.getInt(Keys.gridX) ?? _defaultGridX,
         addedScore = const Box<int>(0),
-        displayMenu = false,
+        isMenuDisplayed = false,
         _scoreBuffer = 0,
         _actionIsUnlocked = true,
         _ghost = Queue<AnimatedTile>(),
@@ -36,21 +37,16 @@ class GameState with ChangeNotifier {
 
   // Why Box<int> instead of int? Because when we change the value to a value
   //  with the same number (but we changed it), the framework does not count it as a change.
-  // Basically, we want it to update each _alert(), and alerting the same value twice in a row won't count.
-  //
-  // tl;dr:
-  //  framework pov:
-  //    value.set 3
-  //    value.set 3 // didn't change, so there's no need to update.
-  //  what we want:
-  //    value.set 3
-  //    value.set 3 // oh we called set, update its listeners.
+  // Basically, we want it to update each _alert(), and alerting the same value twice in a row
+  //  will not alert the listeners.
   Box<int> addedScore;
 
   late final AnimationController controller;
 
   /// Flags that affect UI.
-  bool displayMenu;
+  bool isMenuDisplayed;
+
+  bool get isResetHighlighted => !canSwipeAnywhere();
 
   int gridX;
   int gridY;
@@ -89,8 +85,7 @@ class GameState with ChangeNotifier {
 
   set topTileValue(int topTile) => _activeSpecificGridData.topTile = topTile;
 
-  (GestureDragUpdateCallback, GestureDragUpdateCallback) get dragEndListeners =>
-      (_verticalDragListener, _horizontalDragListener);
+  Listeners get dragEndListeners => (_verticalDragListener, _horizontalDragListener);
 
   void start() {
     _forcedAllowed = true;
@@ -129,6 +124,7 @@ class GameState with ChangeNotifier {
         }
       }
     }
+    start();
   }
 
   void registerAnimationController(TickerProvider provider) {
@@ -149,13 +145,13 @@ class GameState with ChangeNotifier {
   }
 
   void openMenu() {
-    displayMenu = true;
+    isMenuDisplayed = true;
 
     notifyListeners();
   }
 
   void closeMenu() {
-    displayMenu = false;
+    isMenuDisplayed = false;
 
     notifyListeners();
   }
@@ -168,8 +164,8 @@ class GameState with ChangeNotifier {
     }
 
     await Future.wait(<Future<void>>[
-      sharedPreferences.setInt("GRID_Y", this.gridY = gridY),
-      sharedPreferences.setInt("GRID_X", this.gridX = gridX),
+      sharedPreferences.setInt(Keys.gridY, this.gridY = gridY),
+      sharedPreferences.setInt(Keys.gridX, this.gridX = gridX),
     ]);
 
     start();
@@ -213,61 +209,6 @@ class GameState with ChangeNotifier {
 
   static String _keyOf(int gridY, int gridX) => "GRID[$gridY;$gridX]";
 
-  static String _runLengthEncoding(List2<AnimatedTile> tiles) {
-    StringBuffer buffer = StringBuffer("${tiles[0].length}::");
-
-    List<AnimatedTile> flattenedTiles = tiles.expand((List<AnimatedTile> v) => v).toList();
-    for (int i = 0; i < flattenedTiles.length; ++i) {
-      int count = 1;
-      while (i + 1 < flattenedTiles.length && flattenedTiles[i].value == flattenedTiles[i + 1].value) {
-        ++count;
-        ++i;
-      }
-      buffer.write("${flattenedTiles[i].value}:$count");
-      if (i < flattenedTiles.length - 1) {
-        buffer.write(";");
-      }
-    }
-
-    return buffer.toString();
-  }
-
-  static List2<AnimatedTile> _parseRunLengthEncoding(String encoding) {
-    var [String dimensionEncoding, String bodyEncoding] = encoding.split("::");
-    int gridX = int.parse(dimensionEncoding);
-
-    List2<AnimatedTile> grid = <List<AnimatedTile>>[];
-    List<String> splitEncoding = bodyEncoding.split(";");
-
-    int i = 0;
-
-    List<AnimatedTile> buffer = <AnimatedTile>[];
-    for (var [int value, int count] in splitEncoding.map((String v) => v.split(":").map(int.parse).toList())) {
-      for (int j = 0; j < count; ++j, ++i) {
-        var (int y, int x) = (i ~/ gridX, i % gridX);
-
-        buffer.add(AnimatedTile((y: y, x: x), value));
-        if (x == gridX - 1) {
-          grid.add(buffer);
-          buffer = <AnimatedTile>[];
-        }
-      }
-    }
-
-    return grid;
-  }
-
-  static bool _collectionEqual(List2<AnimatedTile> left, List2<AnimatedTile> right) {
-    for (int y = 0; y < left.length && y < right.length; ++y) {
-      for (int x = 0; x < left[y].length && x < right[y].length; ++x) {
-        if (left[y][x].value != right[y][x].value) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
   Future<void> _keyEventListener(KeyEvent event) async {
     if (event is KeyUpEvent) {
       return;
@@ -296,28 +237,22 @@ class GameState with ChangeNotifier {
 
       /// DEBUGS
       case LogicalKeyboardKey.numpad1 when isDebug:
-        stdout.writeln(_collectionEqual(_grid, _parseRunLengthEncoding(_runLengthEncoding(_grid))));
-
-      /// DEBUGS
-      case LogicalKeyboardKey.numpad2 when isDebug:
         _backtrack();
 
       /// DEBUGS
-      case LogicalKeyboardKey.numpad3 when isDebug:
-        if (_actionHistory.isNotEmpty) {
+      case LogicalKeyboardKey.numpad2 when isDebug && _actionHistory.isNotEmpty:
+        if (kDebugMode) {
           MoveAction first = _actionHistory.first;
           MoveAction copy = MoveAction.fromString(MoveAction.encode(first));
 
-          if (kDebugMode) {
-            print(first);
-            print(copy);
-            print(first.toString() == copy.toString());
-          }
+          print(first);
+          print(copy);
+          print(first.toString() == copy.toString());
         }
 
       /// DEBUGS
-      case LogicalKeyboardKey.numpad4 when isDebug:
-        if (_actionHistory.isNotEmpty) {
+      case LogicalKeyboardKey.numpad3 when isDebug && _actionHistory.isNotEmpty && kDebugMode:
+        if (kDebugMode) {
           SpecificGridData gridData = SpecificGridData(
             score,
             score,
@@ -326,13 +261,14 @@ class GameState with ChangeNotifier {
             _grid,
             _actionHistory,
           );
-
-          if (kDebugMode) {
-            print("ONE: ${gridData.encode()}");
-            print("TWO: ${SpecificGridData.fromString(gridData.encode()).encode()}");
-            print("");
-          }
+          print("ONE: ${gridData.encode()}");
+          print("TWO: ${SpecificGridData.fromString(gridData.encode()).encode()}");
+          print("");
         }
+
+      /// DEBUGS
+      case LogicalKeyboardKey.numpad4 when isDebug:
+        break;
     }
   }
 
@@ -384,12 +320,14 @@ class GameState with ChangeNotifier {
       ..shuffle();
 
     if (empty.isNotEmpty) {
-      var (AnimatedTile chosenTile && AnimatedTile(:int y, :int x)) = empty.first;
-      int chosenValue = randomTileNumber();
-      chosenTile.value = chosenValue;
-      newTiles.add((y: y, x: x, value: chosenValue));
+      for (AnimatedTile chosenTile in empty.take(switch (random.nextDouble()) { < 0.01 => 2, _ => 1 })) {
+        var AnimatedTile(:int y, :int x) = chosenTile;
+        int chosenValue = randomTileNumber();
+        chosenTile.value = chosenValue;
+        newTiles.add((y: y, x: x, value: chosenValue));
 
-      _ghost.add(AnimatedTile((y: y, x: x), chosenValue)..appear(controller));
+        _ghost.add(AnimatedTile((y: y, x: x), chosenValue)..appear(controller));
+      }
     }
 
     return newTiles;

@@ -48,7 +48,7 @@ class _ApplicationState extends State<Application> {
                 fit: StackFit.expand,
                 children: <Widget>[
                   const Game(),
-                  if (context.select((GameState state) => state.displayMenu)) const Menu(),
+                  if (context.select((GameState state) => state.isMenuDisplayed)) const Menu(),
                 ],
               ),
             ),
