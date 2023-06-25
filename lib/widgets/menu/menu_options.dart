@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/shared/constants.dart";
+import "package:twenty_fourty_eight/state/game_state.dart";
 import "package:twenty_fourty_eight/state/menu_state.dart";
 
 class MenuOptions extends StatelessWidget {
@@ -61,9 +62,9 @@ class MenuOptions extends StatelessWidget {
           _option(
             text: "Horizontal Tile Count",
             value: xSlider,
-            max: 8.0,
+            max: GameState.maxGridX.toDouble(),
             onChanged: (double value) {
-              if (value case >= 2.0 && <= 8.0) {
+              if (value case >= GameState.minGridX && <= GameState.maxGridX) {
                 state.xSlider = value;
               }
             },
@@ -71,9 +72,9 @@ class MenuOptions extends StatelessWidget {
           _option(
             text: "Vertical Tile Count",
             value: ySlider,
-            max: 8.0,
+            max: GameState.maxGridY.toDouble(),
             onChanged: (double value) {
-              if (value case >= 2.0 && <= 8.0) {
+              if (value case >= GameState.minGridY && <= GameState.maxGridY) {
                 state.ySlider = value;
               }
             },

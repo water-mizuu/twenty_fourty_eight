@@ -52,7 +52,12 @@ class SpecificGridData {
       int.parse(encodedTopTile),
       int.parse(encodedBacktrackCount),
       _decodeRunLengthEncoding(encodedGrid),
-      Queue<MoveAction>.from(encodedActionHistory.split(moveActionHistorySeparator).map(MoveAction.fromString)),
+      Queue<MoveAction>.from(
+        encodedActionHistory
+            .split(moveActionHistorySeparator)
+            .where((String data) => data.isNotEmpty)
+            .map(MoveAction.fromString),
+      ),
     );
   }
 

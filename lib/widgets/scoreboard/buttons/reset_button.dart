@@ -9,6 +9,6 @@ class ResetButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ScoreboardButton(
         icon: Icons.refresh_rounded,
-        onPressed: () => context.read<GameState>().reset(),
+        onPressed: () async => context.read<GameState>().resetGame(),
       );
 }

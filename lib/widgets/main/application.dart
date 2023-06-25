@@ -20,7 +20,7 @@ class _ApplicationState extends State<Application> {
   void initState() {
     super.initState();
 
-    state = GameState()..reset();
+    state = GameState();
     focusNode = FocusNode();
   }
 

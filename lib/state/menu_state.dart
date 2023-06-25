@@ -6,11 +6,10 @@ class MenuState with ChangeNotifier {
       : controller = new AnimationController(vsync: provider, duration: animationDuration),
         _xSlider = gameState.gridX.toDouble(),
         _ySlider = gameState.gridY.toDouble() {
-    controller.addStatusListener((AnimationStatus status) {
+    controller.addStatusListener((AnimationStatus status) async {
       if (status == AnimationStatus.dismissed) {
-        gameState
-          ..changeDimensions(_ySlider.floor(), _xSlider.floor())
-          ..closeMenu();
+        await gameState.changeDimensions(_ySlider.floor(), _xSlider.floor());
+        gameState.closeMenu();
       }
     });
   }

@@ -1,6 +1,8 @@
+import "dart:async";
 import "dart:collection";
 import "dart:io";
 import "dart:math" as math;
+import "dart:math";
 
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
@@ -15,22 +17,22 @@ import "package:twenty_fourty_eight/shared/extensions.dart";
 import "package:twenty_fourty_eight/shared/typedef.dart";
 
 class GameState with ChangeNotifier {
-  GameState([this.gridY = _defaultGridY, this.gridX = _defaultGridX])
-      : addedScore = const Box<int>(0),
+  GameState([int? gridY, int? gridX])
+      : gridY = gridY ?? sharedPreferences.getInt("GRID_Y") ?? _defaultGridY,
+        gridX = gridX ?? sharedPreferences.getInt("GRID_X") ?? _defaultGridX,
+        addedScore = const Box<int>(0),
         displayMenu = false,
         _scoreBuffer = 0,
         _actionIsUnlocked = true,
         _ghost = Queue<AnimatedTile>(),
-        _persistingData = <(int, int), SpecificGridData>{},
-        _activeSpecificGridData = SpecificGridData.empty(),
-        _forcedAllowed = true;
+        _forcedAllowed = true {
+    this._activeSpecificGridData = SpecificGridData.create(this.gridY, this.gridX);
+  }
 
-  static const int _backtrackLimit = 1;
-  static const int _defaultGridY = 4;
-  static const int _defaultGridX = 4;
-  static const Duration _animationDuration = Duration(milliseconds: 300);
-
-  late final AnimationController controller;
+  static const int maxGridX = 8;
+  static const int maxGridY = 8;
+  static const int minGridX = 2;
+  static const int minGridY = 2;
 
   // Why Box<int> instead of int? Because when we change the value to a value
   //  with the same number (but we changed it), the framework does not count it as a change.
@@ -38,47 +40,31 @@ class GameState with ChangeNotifier {
   //
   // tl;dr:
   //  framework pov:
-  //    value.set(3)
-  //    value.set(3) // didn't change, so there's no need to update.
+  //    value.set 3
+  //    value.set 3 // didn't change, so there's no need to update.
   //  what we want:
-  //    value.set(3)
-  //    value.set(3) // oh we called set, update its listeners.
+  //    value.set 3
+  //    value.set 3 // oh we called set, update its listeners.
   Box<int> addedScore;
-  int gridY;
-  int gridX;
+
+  late final AnimationController controller;
 
   /// Flags that affect UI.
   bool displayMenu;
 
-  final Queue<AnimatedTile> _ghost;
-  final Map<(int, int), SpecificGridData> _persistingData;
+  int gridX;
+  int gridY;
+
+  static const Duration _animationDuration = Duration(milliseconds: 300);
+  static const int _backtrackLimit = 1;
+  static const int _defaultGridX = 4;
+  static const int _defaultGridY = 4;
 
   bool _actionIsUnlocked;
-  int _scoreBuffer;
-
-  SpecificGridData _activeSpecificGridData;
-
+  late SpecificGridData _activeSpecificGridData;
   bool _forcedAllowed;
-
-  Iterable<AnimatedTile> get flattenedGrid => _grid.expand((List<AnimatedTile> r) => r);
-  Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_ghost);
-
-  ValueChanged<KeyEvent> get keyListener => _keyEventListener;
-
-  int get score => _activeSpecificGridData.score;
-  set score(int score) => _activeSpecificGridData.score = score;
-
-  int get topTileValue => _activeSpecificGridData.topTile;
-  set topTileValue(int topTile) => _activeSpecificGridData.topTile = topTile;
-
-  int get _backtrackCount => _activeSpecificGridData.backtrackCount;
-  set _backtrackCount(int count) => _activeSpecificGridData.backtrackCount = count;
-
-  List2<AnimatedTile> get _grid => _activeSpecificGridData.grid;
-  Queue<MoveAction> get _actionHistory => _activeSpecificGridData.actionHistory;
-
-  (GestureDragUpdateCallback, GestureDragUpdateCallback) get dragEndListeners =>
-      (_verticalDragListener, _horizontalDragListener);
+  final Queue<AnimatedTile> _ghost;
+  int _scoreBuffer;
 
   @override
   void dispose() {
@@ -89,13 +75,60 @@ class GameState with ChangeNotifier {
     super.dispose();
   }
 
-  void reset() {
+  Iterable<AnimatedTile> get flattenedGrid => _grid.expand((List<AnimatedTile> r) => r);
+
+  Iterable<AnimatedTile> get renderTiles => flattenedGrid.followedBy(_ghost);
+
+  ValueChanged<KeyEvent> get keyListener => _keyEventListener;
+
+  int get score => _activeSpecificGridData.score;
+
+  set score(int score) => _activeSpecificGridData.score = score;
+
+  int get topTileValue => _activeSpecificGridData.topTile;
+
+  set topTileValue(int topTile) => _activeSpecificGridData.topTile = topTile;
+
+  (GestureDragUpdateCallback, GestureDragUpdateCallback) get dragEndListeners =>
+      (_verticalDragListener, _horizontalDragListener);
+
+  void start() {
     _forcedAllowed = true;
 
-    // Nullify
-    _persistingData.remove((gridY, gridX));
-    _loadGrid();
+    switch (sharedPreferences.getString(_key)) {
+      case String data:
+        this._activeSpecificGridData = SpecificGridData.fromString(data);
+      case null:
+        this._activeSpecificGridData = SpecificGridData.create(gridY, gridX);
+        for (AnimatedTile tile in (flattenedGrid.toList()..shuffle()).take(2)) {
+          tile.value = randomTileNumber();
+        }
+    }
+
+    for (AnimatedTile tile in flattenedGrid) {
+      tile
+        ..resetAnimations()
+        ..appear(controller);
+    }
+
+    controller.forward(from: 0.0);
     notifyListeners();
+  }
+
+  Future<void> resetGame() async {
+    // Nullify
+    await sharedPreferences.remove(_key);
+    start();
+  }
+
+  Future<void> resetAllGridData() async {
+    for (int y = minGridY; y <= maxGridY; ++y) {
+      for (int x = minGridX; x <= maxGridX; ++x) {
+        if (_keyOf(y, x) case String key when sharedPreferences.containsKey(key)) {
+          await sharedPreferences.remove(_keyOf(y, x));
+        }
+      }
+    }
   }
 
   void registerAnimationController(TickerProvider provider) {
@@ -127,14 +160,19 @@ class GameState with ChangeNotifier {
     notifyListeners();
   }
 
-  void changeDimensions(int gridY, int gridX) {
-    _saveGrid();
+  Future<void> changeDimensions(int gridY, int gridX) async {
+    await _saveGrid();
 
-    this.gridY = gridY;
-    this.gridX = gridX;
+    if (this.gridY == gridY && this.gridX == gridX) {
+      return;
+    }
 
-    _loadGrid();
-    notifyListeners();
+    await Future.wait(<Future<void>>[
+      sharedPreferences.setInt("GRID_Y", this.gridY = gridY),
+      sharedPreferences.setInt("GRID_X", this.gridX = gridX),
+    ]);
+
+    start();
   }
 
   bool canSwipeAnywhere() =>
@@ -155,6 +193,16 @@ class GameState with ChangeNotifier {
 
   static int powerOfTwo(int gridY, int y, int x) => math.pow(2, y * gridY + x + 1).floor();
 
+  int get _backtrackCount => _activeSpecificGridData.backtrackCount;
+
+  set _backtrackCount(int count) => _activeSpecificGridData.backtrackCount = count;
+
+  List2<AnimatedTile> get _grid => _activeSpecificGridData.grid;
+
+  Queue<MoveAction> get _actionHistory => _activeSpecificGridData.actionHistory;
+
+  String get _key => _keyOf(gridY, gridX);
+
   bool _canSwipeLeft() => _grid.any(_canSwipe);
 
   bool _canSwipeRight() => _grid.reversedRows.any(_canSwipe);
@@ -162,6 +210,8 @@ class GameState with ChangeNotifier {
   bool _canSwipeUp() => _grid.columns.any(_canSwipe);
 
   bool _canSwipeDown() => _grid.columns.reversedRows.any(_canSwipe);
+
+  static String _keyOf(int gridY, int gridX) => "GRID[$gridY;$gridX]";
 
   static String _runLengthEncoding(List2<AnimatedTile> tiles) {
     StringBuffer buffer = StringBuffer("${tiles[0].length}::");
@@ -218,7 +268,7 @@ class GameState with ChangeNotifier {
     return true;
   }
 
-  void _keyEventListener(KeyEvent event) {
+  Future<void> _keyEventListener(KeyEvent event) async {
     if (event is KeyUpEvent) {
       return;
     }
@@ -226,19 +276,19 @@ class GameState with ChangeNotifier {
     switch (event.logicalKey) {
       /// UP
       case LogicalKeyboardKey.arrowUp when _canSwipeUp():
-        _swipe(Direction.up);
+        await _swipe(Direction.up);
 
       /// DOWN
       case LogicalKeyboardKey.arrowDown when _canSwipeDown():
-        _swipe(Direction.down);
+        await _swipe(Direction.down);
 
       /// LEFT
       case LogicalKeyboardKey.arrowLeft when _canSwipeLeft():
-        _swipe(Direction.left);
+        await _swipe(Direction.left);
 
       /// RIGHT
       case LogicalKeyboardKey.arrowRight when _canSwipeRight():
-        _swipe(Direction.right);
+        await _swipe(Direction.right);
 
       /// DEBUGS
       case LogicalKeyboardKey.numpad0 when isDebug:
@@ -286,54 +336,38 @@ class GameState with ChangeNotifier {
     }
   }
 
-  void _verticalDragListener(DragUpdateDetails details) {
+  Future<void> _verticalDragListener(DragUpdateDetails details) async {
     switch (details.primaryDelta) {
       case null:
         break;
 
       /// Swipe Up
       case < -1.6 when _canSwipeUp():
-        _swipe(Direction.up);
+        await _swipe(Direction.up);
 
       /// Swipe Down
       case > 1.6 when _canSwipeDown():
-        _swipe(Direction.down);
+        await _swipe(Direction.down);
     }
   }
 
-  void _horizontalDragListener(DragUpdateDetails details) {
+  Future<void> _horizontalDragListener(DragUpdateDetails details) async {
     switch (details.primaryDelta) {
       case null:
         break;
 
       /// Swipe Left
       case < -1.6 when _canSwipeLeft():
-        _swipe(Direction.left);
+        await _swipe(Direction.left);
 
       /// Swipe Right
       case > 1.6 when _canSwipeRight():
-        _swipe(Direction.right);
+        await _swipe(Direction.right);
     }
   }
 
-  void _saveGrid() {
-    _persistingData[(gridY, gridX)] = _activeSpecificGridData;
-  }
-
-  void _loadGrid() {
-    switch (_persistingData[(gridY, gridX)]) {
-      case SpecificGridData data:
-        this._activeSpecificGridData = data;
-      case null:
-        this._activeSpecificGridData = SpecificGridData.create(gridY, gridX);
-        for (AnimatedTile tile in (flattenedGrid.toList()..shuffle()).take(2)) {
-          tile.value = randomTileNumber();
-        }
-    }
-
-    for (AnimatedTile tile in flattenedGrid) {
-      tile.resetAnimations();
-    }
+  Future<void> _saveGrid() async {
+    await sharedPreferences.setString(_key, _activeSpecificGridData.encode());
   }
 
   void _fail() {
@@ -361,7 +395,7 @@ class GameState with ChangeNotifier {
     return newTiles;
   }
 
-  void _swipe(Direction direction) {
+  Future<void> _swipe(Direction direction) async {
     /// If the swipe actions are locked, then we ignore it.
     if (!_actionIsUnlocked) {
       return;
@@ -421,6 +455,8 @@ class GameState with ChangeNotifier {
               /// Increase the resulting value of the target,
               value += merge.value;
 
+              topTileValue = max(topTileValue, value);
+
               /// Do some animations.
               merge.hide(controller);
               _ghost.add(
@@ -460,7 +496,8 @@ class GameState with ChangeNotifier {
       break _computation;
     }
 
-    controller.forward(from: 0.0);
+    await _saveGrid();
+    unawaited(controller.forward(from: 0.0));
     notifyListeners();
   }
 
