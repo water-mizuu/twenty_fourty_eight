@@ -382,11 +382,10 @@ class GameState with ChangeNotifier {
         Direction.right => _grid.reversedRows,
       };
 
-      List<Merge> merges = <Merge>[];
+      List<MergeAction> merges = <MergeAction>[];
       for (List<AnimatedTile> tiles in target) {
         /// SWIPE LEFT ALGORITHM
         for (int i = 0; i < tiles.length; ++i) {
-          /// We get the sublist from [i], disregarding zeros until the first nonzero.
           List<AnimatedTile> toCheck = tiles
               .skip(i) //
               .skipWhile((AnimatedTile tile) => tile.value == 0)
@@ -459,7 +458,7 @@ class GameState with ChangeNotifier {
 
       score += _scoreBuffer;
       addedScore = Box<int>(_scoreBuffer);
-      _actionHistory.addFirst(MoveAction(merges: merges, added: added, scoreDelta: _scoreBuffer));
+      _actionHistory.addFirst(MoveAction(actions: merges, added: added, scoreDelta: _scoreBuffer));
 
       _scoreBuffer = 0;
       break _computation;
@@ -480,7 +479,7 @@ class GameState with ChangeNotifier {
 
     _computation:
     {
-      var MoveAction(:List<Merge> merges, :Set<Tile> added, :int scoreDelta) = _actionHistory.removeFirst();
+      var MoveAction(:List<MergeAction> actions, :Set<Tile> added, :int scoreDelta) = _actionHistory.removeFirst();
 
       for (Tile tile in added) {
         _ghost.add(AnimatedTile.from(tile)..disappear(controller));
@@ -489,8 +488,8 @@ class GameState with ChangeNotifier {
           ..value = 0;
       }
 
-      for (Merge merge in merges.reversed) {
-        switch (merge) {
+      for (MergeAction action in actions.reversed) {
+        switch (action) {
           case (:Tile target, merge: null, :Tile destination):
             int value = destination.value;
 

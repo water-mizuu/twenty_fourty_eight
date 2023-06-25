@@ -1,13 +1,13 @@
 import "package:flutter/material.dart";
 
 typedef Tile = ({int y, int x, int value});
-typedef Merge = ({Tile target, Tile? merge, Tile destination});
-// typedef Merge = ({(Tile, Tile?) from, Tile to});
+typedef MergeAction = ({Tile target, Tile? merge, Tile destination});
+// typedef MergeAction = ({(Tile, Tile?) from, Tile to});
 
 @immutable
 class MoveAction {
   const MoveAction({
-    required this.merges,
+    required this.actions,
     required this.added,
     required this.scoreDelta,
   });
@@ -18,10 +18,10 @@ class MoveAction {
       String encodedScoreDelta,
     ] = data.split(":");
 
-    List<Merge> merges = <Merge>[
+    List<MergeAction> actions = <MergeAction>[
       for (String encodedMerge in encodedMerges.split("^"))
-        if (encodedMerge.split(";") case [String target, String merge, String destination])
-          (target: _parseTile(target)!, merge: _parseTile(merge), destination: _parseTile(destination)!)
+        if (encodedMerge.split(";").map(_parseTile).toList() case [Tile target, Tile? merge, Tile destination])
+          (target: target, merge: merge, destination: destination)
     ];
 
     Set<Tile> added = <Tile>{
@@ -32,16 +32,16 @@ class MoveAction {
     int scoreDelta = int.parse(encodedScoreDelta);
 
     return MoveAction(
-      merges: merges,
+      actions: actions,
       added: added,
       scoreDelta: scoreDelta,
     );
   }
 
   /// The merges that occurred in the move.
-  final List<Merge> merges;
+  final List<MergeAction> actions;
 
-  /// The tile/s added after the merge.
+  /// The tiles that were added in the move.
   final Set<Tile> added;
 
   /// The score delta of the merge.
@@ -49,8 +49,8 @@ class MoveAction {
 
   static String encode(MoveAction action) => <String>[
         <String>[
-          for (Merge merge in action.merges)
-            switch (merge) {
+          for (MergeAction action in action.actions)
+            switch (action) {
               (
                 target: (y: int ty, x: int tx, value: int tv),
                 merge: (y: int my, x: int mx, value: int mv),
@@ -83,8 +83,8 @@ class MoveAction {
   @override
   String toString() => "MoveAction(${<String>[
         "merges: [${<String>[
-          for (Merge merge in merges)
-            switch (merge) {
+          for (MergeAction action in actions)
+            switch (action) {
               (
                 target: (y: int ty, x: int tx, value: int tv),
                 merge: (y: int my, x: int mx, value: int mv),
