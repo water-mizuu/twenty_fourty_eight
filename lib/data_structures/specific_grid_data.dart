@@ -18,7 +18,7 @@ class SpecificGridData {
   SpecificGridData.create(int gridY, int gridX)
       : score = 0,
         topScore = 0,
-        topTile = 2,
+        topTile = AnimatedTile.dummy(2),
         backtrackCount = 0,
         grid = <List<AnimatedTile>>[
           for (int y = 0; y < gridY; ++y)
@@ -28,10 +28,19 @@ class SpecificGridData {
         ],
         actionHistory = Queue<MoveAction>();
 
+  factory SpecificGridData.base(int gridY, int gridX) {
+    SpecificGridData data = SpecificGridData.create(gridY, gridX);
+    data.topTile
+      ..value = 0
+      ..resetAnimations();
+
+    return data;
+  }
+
   SpecificGridData.empty()
       : score = 0,
         topScore = 0,
-        topTile = 0,
+        topTile = AnimatedTile.dummy(0),
         backtrackCount = 0,
         grid = List2<AnimatedTile>.empty(),
         actionHistory = Queue<MoveAction>();
@@ -49,7 +58,7 @@ class SpecificGridData {
     return SpecificGridData(
       int.parse(encodedString),
       int.parse(encodedTopScore),
-      int.parse(encodedTopTile),
+      AnimatedTile((x: -1, y: -1), int.parse(encodedTopTile)),
       int.parse(encodedBacktrackCount),
       _decodeRunLengthEncoding(encodedGrid),
       Queue<MoveAction>.from(
@@ -70,13 +79,13 @@ class SpecificGridData {
   final List2<AnimatedTile> grid;
   int score;
   int topScore;
-  int topTile;
+  final AnimatedTile topTile;
 
   String encode() {
     List<String> buffer = <String>[
       score.toString(),
       topScore.toString(),
-      topTile.toString(),
+      topTile.value.toString(),
       backtrackCount.toString(),
       _encodeRunLengthEncoding(grid),
       actionHistory

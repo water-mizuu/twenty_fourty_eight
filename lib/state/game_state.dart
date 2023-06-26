@@ -1,7 +1,6 @@
 import "dart:async";
 import "dart:collection";
 import "dart:math" as math;
-import "dart:math";
 
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
@@ -27,7 +26,7 @@ class GameState with ChangeNotifier {
         _actionIsUnlocked = true,
         _ghost = Queue<AnimatedTile>(),
         _forcedAllowed = true {
-    this._activeSpecificGridData = SpecificGridData.create(this.gridY, this.gridX);
+    this._activeSpecificGridData = SpecificGridData.base(this.gridY, this.gridX);
   }
 
   static const int maxGridX = 8;
@@ -51,7 +50,7 @@ class GameState with ChangeNotifier {
   int gridX;
   int gridY;
 
-  static const Duration _animationDuration = Duration(milliseconds: 300);
+  static const Duration animationDuration = Duration(milliseconds: 300);
   static const int _backtrackLimit = 1;
   static const int _defaultGridX = 4;
   static const int _defaultGridY = 4;
@@ -81,9 +80,7 @@ class GameState with ChangeNotifier {
 
   set score(int score) => _activeSpecificGridData.score = score;
 
-  int get topTileValue => _activeSpecificGridData.topTile;
-
-  set topTileValue(int topTile) => _activeSpecificGridData.topTile = topTile;
+  AnimatedTile get topTile => _activeSpecificGridData.topTile;
 
   Listeners get dragEndListeners => (_verticalDragListener, _horizontalDragListener);
 
@@ -97,6 +94,9 @@ class GameState with ChangeNotifier {
         this._activeSpecificGridData = SpecificGridData.create(gridY, gridX);
         for (AnimatedTile tile in (flattenedGrid.toList()..shuffle()).take(2)) {
           tile.value = randomTileNumber();
+          if (tile.value > topTile.value) {
+            topTile.value = tile.value;
+          }
         }
     }
 
@@ -105,6 +105,10 @@ class GameState with ChangeNotifier {
         ..resetAnimations()
         ..appear(controller);
     }
+
+    topTile
+      ..resetAnimations()
+      ..appear(controller);
 
     controller.forward(from: 0.0);
     notifyListeners();
@@ -128,7 +132,7 @@ class GameState with ChangeNotifier {
   }
 
   void registerAnimationController(TickerProvider provider) {
-    controller = AnimationController(vsync: provider, duration: _animationDuration)
+    controller = AnimationController(vsync: provider, duration: animationDuration)
       ..addStatusListener((AnimationStatus status) {
         if (status case AnimationStatus.completed) {
           _ghost.clear();
@@ -137,6 +141,9 @@ class GameState with ChangeNotifier {
               ..show(controller)
               ..resetAnimations();
           }
+          topTile
+            ..show(controller)
+            ..resetAnimations();
 
           controller.reset();
           _actionIsUnlocked = true;
@@ -253,16 +260,8 @@ class GameState with ChangeNotifier {
       /// DEBUGS
       case LogicalKeyboardKey.numpad3 when isDebug && _actionHistory.isNotEmpty && kDebugMode:
         if (kDebugMode) {
-          SpecificGridData gridData = SpecificGridData(
-            score,
-            score,
-            score,
-            score,
-            _grid,
-            _actionHistory,
-          );
-          print("ONE: ${gridData.encode()}");
-          print("TWO: ${SpecificGridData.fromString(gridData.encode()).encode()}");
+          print("ONE: ${_activeSpecificGridData.encode()}");
+          print("TWO: ${SpecificGridData.fromString(_activeSpecificGridData.encode()).encode()}");
           print("");
         }
 
@@ -393,7 +392,12 @@ class GameState with ChangeNotifier {
               /// Increase the resulting value of the target,
               value += merge.value;
 
-              topTileValue = max(topTileValue, value);
+              if (value > topTile.value) {
+                topTile
+                  ..changeNumber(controller, value)
+                  ..bounce(controller)
+                  ..value = value;
+              }
 
               /// Do some animations.
               merge.hide(controller);

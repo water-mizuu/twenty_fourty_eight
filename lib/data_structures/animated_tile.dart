@@ -8,6 +8,12 @@ class AnimatedTile {
     resetAnimations();
   }
 
+  AnimatedTile.dummy(this.value)
+      : x = -1,
+        y = -1 {
+    resetAnimations();
+  }
+
   AnimatedTile.from(Tile tile, [int? value])
       : x = tile.x,
         y = tile.y,

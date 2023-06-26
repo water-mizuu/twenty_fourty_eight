@@ -9,7 +9,7 @@ import "package:twenty_fourty_eight/widgets/scoreboard/buttons/menu_button.dart"
 import "package:twenty_fourty_eight/widgets/scoreboard/buttons/reset_button.dart";
 import "package:twenty_fourty_eight/widgets/scoreboard/buttons/undo_button.dart";
 import "package:twenty_fourty_eight/widgets/scoreboard/scoreboard.dart";
-import "package:twenty_fourty_eight/widgets/top_row/top_display.dart";
+import "package:twenty_fourty_eight/widgets/top_tile/top_tile_display.dart";
 
 class TopRow extends StatelessWidget {
   const TopRow({super.key});
@@ -20,17 +20,15 @@ class TopRow extends StatelessWidget {
   Widget build(BuildContext context) {
     int gridX = max(3, context.select((GameState state) => state.gridX));
 
-    double width = Sizes.tileSize * (gridX + GameTile.tileMarginRatio);
-
     return SizedBox(
-      width: width,
+      width: Sizes.tileSize * (gridX + GameTile.tileMarginRatio),
       child: const Padding(
         padding: EdgeInsets.fromLTRB(0.0, 4.0, 4.0, 4.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            TopDisplay(),
+            TopTileDisplay(),
             Expanded(
               child: Column(
                 children: <Widget>[
