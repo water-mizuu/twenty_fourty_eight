@@ -23,32 +23,37 @@ class _BoardGameState extends State<BoardGame> {
   }
 
   @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-        animation: context.select((GameState state) => state.controller),
-        builder: (BuildContext context, _) => Stack(
-          children: <Widget>[
-            for (var AnimatedTile(
-                  animatedX: Animation<double>(value: double animatedX),
-                  animatedY: Animation<double>(value: double animatedY),
-                  animatedValue: Animation<int>(value: int animatedValue),
-                  scale: Animation<double>(value: double scale),
-                  opacity: Animation<double>(value: double opacity),
-                ) in context.select((GameState state) => state.renderTiles))
-              if (animatedValue != 0) //
-                Positioned(
-                  left: animatedX * Sizes.tileSize,
-                  top: animatedY * Sizes.tileSize,
-                  height: Sizes.tileSize,
-                  width: Sizes.tileSize,
-                  child: Opacity(
-                    opacity: opacity,
-                    child: ActiveTile(
-                      scale: scale,
-                      animatedValue: animatedValue,
-                    ),
+  Widget build(BuildContext context) {
+    AnimationController controller = context.select((GameState state) => state.controller);
+    Iterable<AnimatedTile> tiles = context.select((GameState state) => state.renderTiles);
+
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (BuildContext context, _) => Stack(
+        children: <Widget>[
+          for (var AnimatedTile(
+                animatedX: Animation<double>(value: double animatedX),
+                animatedY: Animation<double>(value: double animatedY),
+                animatedValue: Animation<int>(value: int animatedValue),
+                scale: Animation<double>(value: double scale),
+                opacity: Animation<double>(value: double opacity),
+              ) in tiles)
+            if (animatedValue != 0) //
+              Positioned(
+                left: animatedX * Sizes.tileSize,
+                top: animatedY * Sizes.tileSize,
+                height: Sizes.tileSize,
+                width: Sizes.tileSize,
+                child: Opacity(
+                  opacity: opacity,
+                  child: ActiveTile(
+                    scale: scale,
+                    animatedValue: animatedValue,
                   ),
                 ),
-          ],
-        ),
-      );
+              ),
+        ],
+      ),
+    );
+  }
 }

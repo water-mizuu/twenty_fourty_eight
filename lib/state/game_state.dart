@@ -319,7 +319,7 @@ class GameState with ChangeNotifier {
       ..shuffle();
 
     if (empty.isNotEmpty) {
-      for (AnimatedTile chosenTile in empty.take(switch (random.nextDouble()) { < 0.01 => 2, _ => 1 })) {
+      for (AnimatedTile chosenTile in empty.take(switch (random.nextDouble()) { < 0.001 => 2, _ => 1 })) {
         var AnimatedTile(:int y, :int x) = chosenTile;
         int chosenValue = randomTileNumber();
         chosenTile.value = chosenValue;
