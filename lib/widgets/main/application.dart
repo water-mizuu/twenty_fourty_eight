@@ -12,7 +12,7 @@ class Application extends StatefulWidget {
   State<Application> createState() => _ApplicationState();
 }
 
-class _ApplicationState extends State<Application> {
+class _ApplicationState extends State<Application> with SingleTickerProviderStateMixin {
   late final GameState state;
   late final FocusNode focusNode;
 
@@ -20,7 +20,7 @@ class _ApplicationState extends State<Application> {
   void initState() {
     super.initState();
 
-    state = GameState();
+    state = GameState()..registerAnimationController(this);
     focusNode = FocusNode();
   }
 

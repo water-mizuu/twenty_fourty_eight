@@ -1,4 +1,3 @@
-import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:twenty_fourty_eight/data_structures/animated_tile.dart";
@@ -13,16 +12,12 @@ class BoardGame extends StatefulWidget {
   State<BoardGame> createState() => _BoardGameState();
 }
 
-class _BoardGameState extends State<BoardGame> with SingleTickerProviderStateMixin {
+class _BoardGameState extends State<BoardGame> {
   @override
   void initState() {
     super.initState();
 
-    context.read<GameState>().registerAnimationController(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (kDebugMode) {
-        print("Called `start` on WidgetsBinding");
-      }
       context.read<GameState>().start();
     });
   }
