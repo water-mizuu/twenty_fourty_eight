@@ -1,10 +1,6 @@
 analyzer:
   enable-experiment:
     - variance
-    - const-functions
-    - value-class
-    - extension-types
-    - inference-update-2
   language:
     strict-inference: true
     strict-raw-types: true
