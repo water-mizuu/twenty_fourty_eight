@@ -38,7 +38,7 @@ class MenuOptions extends StatelessWidget {
             activeColor: CustomColors.grayText,
             label: value.floor().toString(),
             onChanged: onChanged,
-          )
+          ),
         ],
       );
 

@@ -24,7 +24,7 @@ class SpecificGridData {
           for (int y = 0; y < gridY; ++y)
             <AnimatedTile>[
               for (int x = 0; x < gridX; ++x) AnimatedTile((y: y, x: x), 0),
-            ]
+            ],
         ],
         actionHistory = Queue<MoveAction>();
 
@@ -117,7 +117,7 @@ class SpecificGridData {
   }
 
   static List2<AnimatedTile> _decodeRunLengthEncoding(String encoding) {
-    var [String dimensionEncoding, String bodyEncoding] = encoding.split("::");
+    var <String>[String dimensionEncoding, String bodyEncoding] = encoding.split("::");
     int gridX = int.parse(dimensionEncoding);
 
     List2<AnimatedTile> grid = <List<AnimatedTile>>[];
@@ -126,7 +126,7 @@ class SpecificGridData {
     int i = 0;
 
     List<AnimatedTile> buffer = <AnimatedTile>[];
-    for (var [int value, int count] in splitEncoding.map((String v) => v.split(":").map(int.parse).toList())) {
+    for (var <int>[int value, int count] in splitEncoding.map((String v) => v.split(":").map(int.parse).toList())) {
       for (int j = 0; j < count; ++j, ++i) {
         var (int y, int x) = (i ~/ gridX, i % gridX);
 

@@ -42,6 +42,3 @@ const BoxDecoration roundRadius = BoxDecoration(borderRadius: BorderRadius.all(R
 final math.Random random = math.Random();
 
 late final SharedPreferences sharedPreferences;
-
-/// NOTE: Do not touch the code.
-bool isDebug = false;

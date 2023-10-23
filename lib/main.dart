@@ -18,13 +18,5 @@ void main() async {
 
   sharedPreferences = await SharedPreferences.getInstance();
 
-  assert(
-    () {
-      isDebug = true;
-
-      return true;
-    }(),
-    "Should never fail",
-  );
   runApp(const Application());
 }

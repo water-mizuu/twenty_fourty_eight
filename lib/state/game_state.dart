@@ -17,7 +17,7 @@ import "package:twenty_fourty_eight/shared/typedef.dart";
 typedef Listeners = (GestureDragUpdateCallback, GestureDragUpdateCallback);
 
 class GameState with ChangeNotifier {
-  GameState([int? gridY, int? gridX])
+  GameState({required TickerProvider vsync, int? gridY, int? gridX})
       : gridY = gridY ?? sharedPreferences.getInt(Keys.gridY) ?? _defaultGridY,
         gridX = gridX ?? sharedPreferences.getInt(Keys.gridX) ?? _defaultGridX,
         addedScore = const Box<int>(0),
@@ -27,6 +27,23 @@ class GameState with ChangeNotifier {
         _ghost = Queue<AnimatedTile>(),
         _forcedAllowed = true {
     this._activeSpecificGridData = SpecificGridData.base(this.gridY, this.gridX);
+    this.controller = AnimationController(vsync: vsync, duration: animationDuration)
+      ..addStatusListener((AnimationStatus status) {
+        if (status case AnimationStatus.completed) {
+          _ghost.clear();
+          for (AnimatedTile tile in flattenedGrid) {
+            tile
+              ..show(controller)
+              ..resetAnimations();
+          }
+          topTile
+            ..show(controller)
+            ..resetAnimations();
+
+          controller.reset();
+          _actionIsUnlocked = true;
+        }
+      });
   }
 
   static const int maxGridX = 8;
@@ -51,7 +68,7 @@ class GameState with ChangeNotifier {
   int gridY;
 
   static const Duration animationDuration = Duration(milliseconds: 300);
-  static const int _backtrackLimit = 1;
+  static const num _backtrackLimit = double.infinity;
   static const int _defaultGridX = 4;
   static const int _defaultGridY = 4;
 
@@ -131,26 +148,6 @@ class GameState with ChangeNotifier {
     start();
   }
 
-  void registerAnimationController(TickerProvider provider) {
-    controller = AnimationController(vsync: provider, duration: animationDuration)
-      ..addStatusListener((AnimationStatus status) {
-        if (status case AnimationStatus.completed) {
-          _ghost.clear();
-          for (AnimatedTile tile in flattenedGrid) {
-            tile
-              ..show(controller)
-              ..resetAnimations();
-          }
-          topTile
-            ..show(controller)
-            ..resetAnimations();
-
-          controller.reset();
-          _actionIsUnlocked = true;
-        }
-      });
-  }
-
   void openMenu() {
     isMenuDisplayed = true;
 
@@ -179,7 +176,8 @@ class GameState with ChangeNotifier {
   }
 
   bool canSwipeAnywhere() =>
-      (!isDebug || _forcedAllowed) && (_canSwipeUp() || _canSwipeDown() || _canSwipeLeft() || _canSwipeRight());
+      // (if isDebug then forcedAllowed) AND (canSwipeUp OR canSwipeDown OR canSwipeLeft OR canSwipeRight)
+      (!kDebugMode || _forcedAllowed) && (_canSwipeUp() || _canSwipeDown() || _canSwipeLeft() || _canSwipeRight());
 
   void backtrack() {
     if (canBacktrack()) {
@@ -239,15 +237,15 @@ class GameState with ChangeNotifier {
         await _swipe(Direction.right);
 
       /// DEBUGS
-      case LogicalKeyboardKey.numpad0 when isDebug:
+      case LogicalKeyboardKey.numpad0 when kDebugMode:
         _fail();
 
       /// DEBUGS
-      case LogicalKeyboardKey.numpad1 when isDebug:
+      case LogicalKeyboardKey.numpad1 when kDebugMode:
         _backtrack();
 
       /// DEBUGS
-      case LogicalKeyboardKey.numpad2 when isDebug && _actionHistory.isNotEmpty:
+      case LogicalKeyboardKey.numpad2 when kDebugMode && _actionHistory.isNotEmpty:
         if (kDebugMode) {
           MoveAction first = _actionHistory.first;
           MoveAction copy = MoveAction.fromString(MoveAction.encode(first));
@@ -258,7 +256,7 @@ class GameState with ChangeNotifier {
         }
 
       /// DEBUGS
-      case LogicalKeyboardKey.numpad3 when isDebug && _actionHistory.isNotEmpty && kDebugMode:
+      case LogicalKeyboardKey.numpad3 when kDebugMode && _actionHistory.isNotEmpty && kDebugMode:
         if (kDebugMode) {
           print("ONE: ${_activeSpecificGridData.encode()}");
           print("TWO: ${SpecificGridData.fromString(_activeSpecificGridData.encode()).encode()}");
@@ -266,7 +264,7 @@ class GameState with ChangeNotifier {
         }
 
       /// DEBUGS
-      case LogicalKeyboardKey.numpad4 when isDebug:
+      case LogicalKeyboardKey.numpad4 when kDebugMode:
         break;
     }
   }
@@ -277,11 +275,11 @@ class GameState with ChangeNotifier {
         break;
 
       /// Swipe Up
-      case < -1.6 when _canSwipeUp():
+      case < -3.2 when _canSwipeUp():
         await _swipe(Direction.up);
 
       /// Swipe Down
-      case > 1.6 when _canSwipeDown():
+      case > 3.2 when _canSwipeDown():
         await _swipe(Direction.down);
     }
   }
@@ -311,6 +309,29 @@ class GameState with ChangeNotifier {
     notifyListeners();
   }
 
+  static T randomWeighted<T>(List<(T, double)> values, {T? orElse}) {
+    var (List<T> items, List<double> weights) = values.split();
+    List<double> cumulativeSum = List<double>.generate(
+      weights.length,
+      (int i) => weights
+          .take(i + 1) //
+          .fold(0, (double a, double b) => a + b),
+    );
+
+    assert(cumulativeSum.last == 1.0 || orElse != null, "");
+
+    double randomValue = random.nextDouble();
+    T? value;
+    for (var (int index, double weight) in cumulativeSum.indexed) {
+      if (randomValue <= weight) {
+        value = items[index];
+        break;
+      }
+    }
+
+    return (value ?? orElse)!;
+  }
+
   Set<Tile> _addNewTile() {
     Set<Tile> newTiles = <Tile>{};
     List<AnimatedTile> empty = flattenedGrid //
@@ -319,7 +340,10 @@ class GameState with ChangeNotifier {
       ..shuffle();
 
     if (empty.isNotEmpty) {
-      for (AnimatedTile chosenTile in empty.take(switch (random.nextDouble()) { < 0.001 => 2, _ => 1 })) {
+      /// 1% chance of spawning 2.
+      /// else spawn 1,
+      int takeCount = randomWeighted(<(int, double)>[(2, 0.01)], orElse: 1);
+      for (AnimatedTile chosenTile in empty.take(takeCount)) {
         var AnimatedTile(:int y, :int x) = chosenTile;
         int chosenValue = randomTileNumber();
         chosenTile.value = chosenValue;
@@ -548,4 +572,9 @@ class GameState with ChangeNotifier {
   void _addScore(int value) {
     _scoreBuffer += value;
   }
+}
+
+extension IterableSplitExtension<V1, V2> on List<(V1, V2)> {
+  (List<V1>, List<V2>) split() => //
+      (map(((V1, V2) v) => v.$1).toList(), map(((V1, V2) v) => v.$2).toList());
 }

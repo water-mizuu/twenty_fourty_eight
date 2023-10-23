@@ -20,7 +20,7 @@ class _ApplicationState extends State<Application> with SingleTickerProviderStat
   void initState() {
     super.initState();
 
-    state = GameState()..registerAnimationController(this);
+    state = GameState(vsync: this);
     focusNode = FocusNode();
   }
 

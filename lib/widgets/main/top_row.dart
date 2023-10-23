@@ -48,7 +48,7 @@ class TopRow extends StatelessWidget {
                       _pad,
                       ResetButton(),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),

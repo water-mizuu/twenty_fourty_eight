@@ -21,12 +21,12 @@ class MoveAction {
     List<MergeAction> actions = <MergeAction>[
       for (String encodedMerge in encodedMerges.split("^"))
         if (encodedMerge.split(";").map(_parseTile).toList() case [Tile target, Tile? merge, Tile destination])
-          (target: target, merge: merge, destination: destination)
+          (target: target, merge: merge, destination: destination),
     ];
 
     Set<Tile> added = <Tile>{
       for (String encodedAdd in encodedAdds.split(";")) //
-        _parseTile(encodedAdd)!
+        _parseTile(encodedAdd)!,
     };
 
     int scoreDelta = int.parse(encodedScoreDelta);
@@ -65,9 +65,7 @@ class MoveAction {
                 "$ty,$tx,$tv;n;$dy,$dx,$dv",
             },
         ].join("^"),
-        <String>[
-          for (var Tile(:int y, :int x, :int value) in action.added) "$y,$x,$value",
-        ].join(";"),
+        action.added.map((Tile tile) => "${tile.y},${tile.x},${tile.value}").join(";"),
         action.scoreDelta.toString(),
       ].join(":");
 
