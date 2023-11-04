@@ -176,8 +176,8 @@ class GameState with ChangeNotifier {
   }
 
   bool canSwipeAnywhere() =>
-      // (if isDebug then forcedAllowed) AND (canSwipeUp OR canSwipeDown OR canSwipeLeft OR canSwipeRight)
-      (!kDebugMode || _forcedAllowed) && (_canSwipeUp() || _canSwipeDown() || _canSwipeLeft() || _canSwipeRight());
+      // (if isDebug then forcedAllowed) OR (canSwipeUp OR canSwipeDown OR canSwipeLeft OR canSwipeRight)
+      (!kDebugMode || _forcedAllowed) || (_canSwipeUp() || _canSwipeDown() || _canSwipeLeft() || _canSwipeRight());
 
   void backtrack() {
     if (canBacktrack()) {
@@ -559,9 +559,8 @@ class GameState with ChangeNotifier {
   /// ```
   bool _canSwipe(List<AnimatedTile> tiles) {
     for (int i = 0; i < tiles.length; ++i) {
-      AnimatedTile? query = tiles.skip(i + 1).skipWhile((AnimatedTile t) => t.value == 0).firstOrNull;
-
-      if (query != null && (tiles[i].value == 0 || query.value == tiles[i].value)) {
+      if (tiles.skip(i + 1).skipWhile((AnimatedTile t) => t.value == 0).firstOrNull case AnimatedTile query?
+          when tiles[i].value == 0 || query.value == tiles[i].value) {
         return true;
       }
     }
