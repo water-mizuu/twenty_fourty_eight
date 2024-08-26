@@ -23,7 +23,7 @@ class GameState with ChangeNotifier {
         addedScore = const Box<int>(0),
         isMenuDisplayed = false,
         _scoreBuffer = 0,
-        _actionIsUnlocked = true,
+        _swipingIsUnlocked = true,
         _ghost = Queue<AnimatedTile>(),
         _forcedAllowed = true {
     this._activeSpecificGridData = SpecificGridData.base(this.gridY, this.gridX);
@@ -41,7 +41,7 @@ class GameState with ChangeNotifier {
             ..resetAnimations();
 
           controller.reset();
-          _actionIsUnlocked = true;
+          _swipingIsUnlocked = true;
         }
       });
   }
@@ -72,7 +72,7 @@ class GameState with ChangeNotifier {
   static const int _defaultGridX = 4;
   static const int _defaultGridY = 4;
 
-  bool _actionIsUnlocked;
+  bool _swipingIsUnlocked;
   late SpecificGridData _activeSpecificGridData;
   bool _forcedAllowed;
   final Queue<AnimatedTile> _ghost;
@@ -358,12 +358,12 @@ class GameState with ChangeNotifier {
 
   Future<void> _swipe(Direction direction) async {
     /// If the swipe actions are locked, then we ignore it.
-    if (!_actionIsUnlocked) {
+    if (!_swipingIsUnlocked) {
       return;
     }
 
     _forcedAllowed = true;
-    _actionIsUnlocked = false;
+    _swipingIsUnlocked = false;
     _backtrackCount = 0;
 
     _computation:
@@ -468,12 +468,12 @@ class GameState with ChangeNotifier {
   }
 
   void _backtrack() {
-    if (!_actionIsUnlocked || _actionHistory.isEmpty) {
+    if (!_swipingIsUnlocked || _actionHistory.isEmpty) {
       return;
     }
 
     _forcedAllowed = true;
-    _actionIsUnlocked = false;
+    _swipingIsUnlocked = false;
     _backtrackCount += 1;
 
     _computation:
@@ -559,7 +559,7 @@ class GameState with ChangeNotifier {
   /// ```
   bool _canSwipe(List<AnimatedTile> tiles) {
     for (int i = 0; i < tiles.length; ++i) {
-      if (tiles.skip(i + 1).skipWhile((AnimatedTile t) => t.value == 0).firstOrNull case AnimatedTile query?
+      if (tiles.skip(i + 1).skipWhile((AnimatedTile t) => t.value == 0).firstOrNull case AnimatedTile query
           when tiles[i].value == 0 || query.value == tiles[i].value) {
         return true;
       }
